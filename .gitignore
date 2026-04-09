@@ -1,3 +1,4 @@
 .env
 chest-x-ray-data/
 .venv/
+node_modules/
