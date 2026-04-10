@@ -1,5 +1,8 @@
+import { useState } from "react"
+
 export default function HomePage(){
     const API = import.meta.env.VITE_API_BASE_URL
+    const [responseText,setResponseText] = useState("")
     const handleSubmit = (e) => {
         e.preventDefault()
         const formData = new FormData()
@@ -14,7 +17,9 @@ export default function HomePage(){
             (res) => res.json()
         )
         .then(
-            (data) => console.log(data)
+            (data) => {
+                setResponseText(data.text)
+            }
         )
         .catch(
             (err) => console.log(err)
@@ -29,8 +34,8 @@ export default function HomePage(){
             </form>
             <div className="border p-2 rounded-xl">
                 {/* Image insertion */}
-                <img src="" alt="most similar xray" />
-                <textarea className="border p-2 rounded-xl resize-none" placeholder="Responses Appear here" rows={5} cols={50}>
+                <img src={null} alt="most similar xray" />
+                <textarea className="border p-2 rounded-xl resize-none" placeholder="Responses Appear here" rows={5} cols={50} defaultValue={responseText}>
                 </textarea>
             </div>
         </div>

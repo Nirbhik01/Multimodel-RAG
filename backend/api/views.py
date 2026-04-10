@@ -8,6 +8,6 @@ from rest_framework.response import Response
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def GetResponse(request):
-    return Response({"status": "ok"})
+    return Response({"status": "ok","text":"text1","image":'image1.png'})
 
 
