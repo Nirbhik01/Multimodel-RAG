@@ -8,6 +8,9 @@ export default function HomePage(){
         const formData = new FormData()
         formData.append('image', e.target.image.files[0])
         formData.append('query', e.target.query.value)
+        // empty the form once submitted
+        e.target.image.value = ""
+        e.target.query.value = ""
 
         fetch(`${API}/getResponse`, {
             method: 'POST',
@@ -35,7 +38,7 @@ export default function HomePage(){
             <div className="border p-2 rounded-xl">
                 {/* Image insertion */}
                 <img src={null} alt="most similar xray" />
-                <textarea className="border p-2 rounded-xl resize-none" placeholder="Responses Appear here" rows={5} cols={50} defaultValue={responseText}>
+                <textarea name='result' className="border p-2 rounded-xl resize-none" placeholder="Responses Appear here" rows={5} cols={50} defaultValue={responseText}>
                 </textarea>
             </div>
         </div>
