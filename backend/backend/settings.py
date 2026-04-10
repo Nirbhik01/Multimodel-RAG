@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -121,10 +125,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 # Allow your specific frontend origin
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:5173", # Common for Vite
-]
+# import from .env file
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+CORS_ALLOWED_ORIGINS = [ str(FRONTEND_URL) ]
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
