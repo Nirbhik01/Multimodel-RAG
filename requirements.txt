@@ -1,0 +1,12 @@
+django
+djangorestframework
+django-cors-headers
+python-dotenv
+upstash-vector
+transformers
+torch
+Pillow
+pandas
+numpy
+tqdm
+huggingface-hub
