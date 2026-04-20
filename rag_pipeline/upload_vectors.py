@@ -3,33 +3,63 @@ import json
 from pathlib import Path
 import os
 from upstash_vector import Index, Vector
-# from transformers import CLIPProcessor, CLIPModel
 import os
 
 load_dotenv()
+
+root_path = Path(__file__).parent.parent
+
+data_path = root_path / 'chest-x-ray-data' / 'embedding_results.json'
 
 index = Index(
     url = os.getenv('UPSTASH_DB_URL'),
     token = os.getenv('UPSTASH_TOKEN'),
 )
 
-# model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-# processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+def insert_vectors(data_path, index, batch_size=100):
 
-root_path = Path(__file__).parent.parent
-data_path = root_path / 'chest-x-ray-data' / 'impression_and_findings.json'
+    success_count = 0
+    skip_count = 0
+    error_count = 0
 
-with open(data_path, 'r') as f:
-    data = json.load(f)
+    batch = []
 
-for entry in data:
-    index.upsert(
-        vectors = [
-            Vector(
-                id = entry['id'],
-                data = entry['text'],
-                metadata = {"image": entry['image']},
+    with open(data_path, 'r') as f:
+        data = json.load(f)
+
+    for entry in data:
+        try:
+            if 'id' not in entry or 'final_embedding' not in entry:
+                skip_count += 1
+                continue
+
+            batch.append(
+                Vector(
+                    id=entry['id'],
+                    vector=entry['final_embedding'],
+                    metadata={}
+                )
             )
-        ]
-    )
-    break
+
+            # Flush batch
+            if len(batch) >= batch_size:
+                index.upsert(vectors=batch)
+                success_count += len(batch)
+                batch = []
+
+        except Exception as e:
+            print(f"Error: {e}")
+            error_count += 1
+
+    # Final flush
+    if batch:
+        index.upsert(vectors=batch)
+        success_count += len(batch)
+
+    return {
+        "success": success_count,
+        "skipped": skip_count,
+        "errors": error_count
+    }
+
+print(insert_vectors(data_path = data_path, index = index, batch_size = 100))
