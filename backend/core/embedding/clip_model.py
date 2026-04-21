@@ -12,3 +12,4 @@ def get_clip():
         _processor = CLIPProcessor.from_pretrained(model_id)
 
     return _model, _processor
+
