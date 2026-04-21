@@ -29,14 +29,16 @@ def insert_vectors(data_path, index, batch_size=100):
 
     for entry in data:
         try:
-            if 'id' not in entry or 'final_embedding' not in entry:
+            if 'id' not in entry or 'text_embedding' not in entry or 'image_embedding' not in entry:
                 skip_count += 1
                 continue
+
+            final_embedding = 0.6 * entry['image_embedding'] + 0.4 * entry['text_embedding']  
 
             batch.append(
                 Vector(
                     id=entry['id'],
-                    vector=entry['final_embedding'],
+                    vector=final_embedding,
                     metadata={}
                 )
             )
