@@ -9,7 +9,7 @@ load_dotenv()
 
 root_path = Path(__file__).parent.parent
 
-data_path = root_path / 'chest-x-ray-data' / 'embedding_results.json'
+data_path = root_path / 'data' / 'processed' / 'embedding_results.json'
 
 index = Index(
     url = os.getenv('UPSTASH_DB_URL'),

@@ -6,7 +6,7 @@ from rest_framework.response import Response
 import logging
 logger = logging.getLogger(__name__)
 
-from api.generate_embedding.clip_model import get_clip
+from core.embedding.clip_model import get_clip
 
 # Create your views here.
 

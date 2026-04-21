@@ -3,3 +3,4 @@ chest-x-ray-data/
 .venv/
 node_modules/
 __pycache__/
+data/
