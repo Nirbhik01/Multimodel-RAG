@@ -3,5 +3,5 @@ def query_vector_db(query_vector, index):
         vector = query_vector,
         top_k = 3,
         include_vectors = False,
-        include_metadata = False
+        include_metadata = True
     )

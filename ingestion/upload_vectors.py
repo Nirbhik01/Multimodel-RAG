@@ -33,13 +33,21 @@ def insert_vectors(data_path, index, batch_size=100):
                 skip_count += 1
                 continue
 
-            final_embedding = 0.6 * entry['image_embedding'] + 0.4 * entry['text_embedding']  
-
+            # Add Image Vector
             batch.append(
                 Vector(
-                    id=entry['id'],
-                    vector=final_embedding,
-                    metadata={}
+                    id=f"img_{entry['id']}",
+                    vector=entry['image_embedding'],
+                    metadata={"original_id": entry['id'], "type": "image"}
+                )
+            )
+
+            # Add Text Vector
+            batch.append(
+                Vector(
+                    id=f"txt_{entry['id']}",
+                    vector=entry['text_embedding'],
+                    metadata={"original_id": entry['id'], "type": "text"}
                 )
             )
 

@@ -1,3 +1,4 @@
+from os import truncate
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -8,6 +9,8 @@ from core.embedding.generate_embeddings import get_text_embedding, get_image_emb
 from core.embedding.clip_model import get_clip
 
 from core.retrieval.query_vector_db import query_vector_db
+
+from core.generation.generate_answer import generate_answer
 
 import os
 from dotenv import load_dotenv
@@ -41,24 +44,46 @@ def GetResponse(request):
         json_data = json.load(file)
 
     # Reading from multipart/form-data POST request
-    query = request.data.get('query')
-    image = request.FILES.get('image')
+    query_text = request.data.get('query')
+    query_image = request.FILES.get('image')
     
-    text_embedding = get_text_embedding(text = query , model = model , processor = processor)
-    image_embedding = get_image_embedding(image = image , model = model , processor = processor)
-
-    final_embedding = (0.6 * image_embedding) + (0.4 * text_embedding)
+    text_embedding = get_text_embedding(text = query_text , model = model , processor = processor)
+    image_embedding = get_image_embedding(image = query_image , model = model , processor = processor)
     
-    result_id = int(query_vector_db(query_vector = final_embedding, index = index)[0].id)
+    text_vectors = query_vector_db(query_vector = text_embedding, index = index)
+    image_vectors = query_vector_db(query_vector = image_embedding, index = index)
 
-    logger.info(f'retrieved result id is : {result_id}') 
+    combined_scores = {}
 
-    image_name, text = get_image_name_and_text(id = result_id, json_data = json_data)
+    for r in text_vectors:
+        oid = r.metadata["original_id"]
+        combined_scores[oid] = combined_scores.get(oid, 0) + 0.6 * r.score
+
+    for r in image_vectors:
+        oid = r.metadata["original_id"]
+        combined_scores[oid] = combined_scores.get(oid, 0) + 0.4 * r.score
+
+    logger.info(f'scores : %.100s' % combined_scores)
+
+    final_results = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
+
+    # logger.info(f'final result : {final_results}')
+
+    image_name, text = get_image_name_and_text(id = final_results[0][0], json_data = json_data)
     image = get_image(image_name = image_name, root_path = root_path)
+
+    content = f'''
+        User input data:
+            Query: {query_text}
+        Similar data according to rag:
+            Text: {text}
+    '''
+
+    final_response = generate_answer(gemini_model = 'gemini-2.5-flash' , GEMINI_API_KEY = os.getenv('GEMINI_API_KEY') , contents = content)
 
     return Response({
         "status": "ok",
-        "text": text,
+        "text": final_response,
         "image": image
     })
 
@@ -81,5 +106,4 @@ def get_image_name_and_text(id, json_data):
     for item in json_data:
         if item['id'] == id:
             return item['image'], item['text']
-        
-
+    
