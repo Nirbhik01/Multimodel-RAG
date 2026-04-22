@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -12,6 +11,11 @@ from core.retrieval.query_vector_db import query_vector_db
 
 import os
 from dotenv import load_dotenv
+
+from pathlib import Path
+
+import json
+import base64
 
 import logging
 
@@ -31,6 +35,11 @@ def GetResponse(request):
 
     index = Index(url = UPSTASH_VECTOR_REST_URL, token = UPSTASH_VECTOR_READ_ONLY_REST_TOKEN)
 
+    root_path = Path(__file__).parent.parent.parent
+    json_data_path = root_path / 'data' / 'processed' / 'impression_and_findings.json'
+    with open(json_data_path, 'r') as file:
+        json_data = json.load(file)
+
     # Reading from multipart/form-data POST request
     query = request.data.get('query')
     image = request.FILES.get('image')
@@ -40,12 +49,37 @@ def GetResponse(request):
 
     final_embedding = (0.6 * image_embedding) + (0.4 * text_embedding)
     
-    print(query_vector_db(query_vector = final_embedding, index = index))
+    result_id = int(query_vector_db(query_vector = final_embedding, index = index)[0].id)
+
+    logger.info(f'retrieved result id is : {result_id}') 
+
+    image_name, text = get_image_name_and_text(id = result_id, json_data = json_data)
+    image = get_image(image_name = image_name, root_path = root_path)
 
     return Response({
         "status": "ok",
-        "text": f"Processed query: {query}",
-        "image": 'image1.png'
+        "text": text,
+        "image": image
     })
 
+def get_image(image_name, root_path):
+    if not image_name:
+        logger.error("No image name provided to get_image")
+        return None
+    
+    data_path = root_path / 'data' / 'images' / 'images_normalized' / image_name
+
+    if not data_path.exists():
+        logger.error(f"Image not found at path: {data_path}")
+        return None
+
+    with open (data_path, 'rb') as img:
+        encoded_string = base64.b64encode(img.read()).decode('utf-8')
+        return f"data:image/png;base64,{encoded_string}"
+
+def get_image_name_and_text(id, json_data):
+    for item in json_data:
+        if item['id'] == id:
+            return item['image'], item['text']
+        
 

@@ -3,6 +3,7 @@ import { useState } from "react"
 export default function HomePage(){
     const API = import.meta.env.VITE_API_BASE_URL
     const [responseText,setResponseText] = useState("")
+    const [responseImage, setResponseImage] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null)
 
@@ -34,7 +35,8 @@ export default function HomePage(){
 
             const data = await response.json()
             console.log("Received response:", data)
-            setResponseText(data.text)
+            setResponseText(data.text.replace("Impression:", "\n\nImpression:"))
+            setResponseImage(data.image)
             
             // Empty the form once submitted successfully
             e.target.image.value = ""
@@ -73,20 +75,26 @@ export default function HomePage(){
                 </div>
             )}
 
-            <div className="border border-slate-700 p-6 rounded-2xl bg-slate-800 shadow-2xl w-full max-w-2xl">
+            <div className="border border-slate-700 p-6 rounded-2xl bg-slate-800 shadow-2xl w-full max-w-4xl h-fit">
                 <h2 className="text-xl font-semibold mb-4 text-slate-300">Analysis Result</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col items-center justify-center border border-dashed border-slate-600 rounded-xl p-2 min-h-[200px]">
                         {/* Image insertion */}
                         <p className="text-slate-500 text-sm mb-2">Most Similar X-Ray</p>
-                        <img src={null} alt="most similar xray" className="max-h-[180px] rounded-lg" />
+                        {responseImage ? (
+                            <img src={responseImage} alt="most similar xray" className="max-h-[180px] rounded-lg" />
+                        ) : (
+                            <div className="w-full h-[180px] flex items-center justify-center bg-slate-800/50 rounded-lg text-slate-600 text-xs text-center px-4">
+                                Most similar image will appear here
+                            </div>
+                        )}
                     </div>
                     <textarea 
                         name='result' 
                         className="border border-slate-700 p-4 rounded-xl resize-none bg-slate-900 text-white focus:outline-none h-[200px]" 
                         placeholder="Responses will appear here..." 
-                        rows={5} 
-                        defaultValue={responseText}
+                        rows={10} 
+                        value={responseText}
                         readOnly
                     />
                 </div>
