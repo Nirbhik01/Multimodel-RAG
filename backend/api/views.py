@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from upstash_vector import Index
 
 from core.embedding.generate_embeddings import get_text_embedding, get_image_embedding
-from core.embedding.clip_model import get_clip
+from core.embedding.medical_models import get_medical_models
 
 from core.retrieval.query_vector_db import query_vector_db
 
@@ -31,7 +31,7 @@ load_dotenv()
 @permission_classes([AllowAny])
 def GetResponse(request):
 
-    model, processor = get_clip()
+    text_model, image_model, image_processor = get_medical_models()
 
     UPSTASH_VECTOR_REST_URL = os.getenv('UPSTASH_DB_URL')
     UPSTASH_VECTOR_READ_ONLY_REST_TOKEN = os.getenv('UPSTASH_READ_ONLY_TOKEN')
@@ -47,8 +47,8 @@ def GetResponse(request):
     query_text = request.data.get('query')
     query_image = request.FILES.get('image')
     
-    text_embedding = get_text_embedding(text = query_text , model = model , processor = processor)
-    image_embedding = get_image_embedding(image = query_image , model = model , processor = processor)
+    text_embedding = get_text_embedding(text = query_text, model = text_model)
+    image_embedding = get_image_embedding(image = query_image, processor = image_processor, model = image_model)
     
     text_vectors = query_vector_db(query_vector = text_embedding, index = index)
     image_vectors = query_vector_db(query_vector = image_embedding, index = index)
