@@ -79,7 +79,7 @@ def GetResponse(request):
             Text: {text}
     '''
 
-    final_response = generate_answer(gemini_model = 'gemini-2.5-flash' , GEMINI_API_KEY = os.getenv('GEMINI_API_KEY') , contents = content)
+    final_response = generate_answer(gemini_model = 'gemini-2.5-flash-lite' , GEMINI_API_KEY = os.getenv('GEMINI_API_KEY') , contents = content)
 
     return Response({
         "status": "ok",
