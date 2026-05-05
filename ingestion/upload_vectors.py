@@ -27,9 +27,11 @@ def insert_vectors(data_path, index, batch_size=100):
     with open(data_path, 'r') as f:
         data = json.load(f)
 
+    fields = ["id","text_embedding","cleaned_text","image_embedding","image", "label","cluster","normal"]
+
     for entry in data:
         try:
-            if 'id' not in entry or 'text_embedding' not in entry or 'image_embedding' not in entry:
+            if any(x not in entry for x in fields):
                 skip_count += 1
                 continue
 
@@ -38,7 +40,14 @@ def insert_vectors(data_path, index, batch_size=100):
                 Vector(
                     id=f"img_{entry['id']}",
                     vector=entry['image_embedding'],
-                    metadata={"original_id": entry['id'], "type": "image"}
+                    metadata={
+                        "original_id": entry['id'],
+                        "type": "image",
+                        "label": entry['label'],
+                        "cluster": entry['cluster'],
+                        "normal": entry['normal'],
+                        "image_name":entry['image']
+                    }
                 )
             )
 
@@ -47,7 +56,14 @@ def insert_vectors(data_path, index, batch_size=100):
                 Vector(
                     id=f"txt_{entry['id']}",
                     vector=entry['text_embedding'],
-                    metadata={"original_id": entry['id'], "type": "text"}
+                    metadata={
+                        "original_id": entry['id'],
+                        "type": "text",
+                        "label": entry['label'],
+                        "cluster": entry['cluster'],
+                        "normal": entry['normal'],
+                        "cleaned_text":entry['cleaned_text']
+                    }
                 )
             )
 
