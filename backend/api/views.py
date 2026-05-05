@@ -39,7 +39,7 @@ def GetResponse(request):
     index = Index(url = UPSTASH_VECTOR_REST_URL, token = UPSTASH_VECTOR_READ_ONLY_REST_TOKEN)
 
     root_path = Path(__file__).parent.parent.parent
-    json_data_path = root_path / 'data' / 'processed' / 'impression_and_findings.json'
+    json_data_path = root_path / 'data' / 'processed' / 'embedding_input.json'
     with open(json_data_path, 'r') as file:
         json_data = json.load(file)
 
