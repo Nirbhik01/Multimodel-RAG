@@ -12,6 +12,7 @@ from core.retrieval.query_vector_db import query_vector_db
 
 from core.generation.generate_answer import generate_answer
 
+from datetime import datetime
 import os
 from dotenv import load_dotenv
 
@@ -21,6 +22,8 @@ import json
 import base64
 
 import logging
+from .mongodb_utils import db_client
+from bson import ObjectId
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -46,7 +49,28 @@ def GetResponse(request):
     # Reading from multipart/form-data POST request
     query_text = request.data.get('query')
     query_image = request.FILES.get('image')
+    conversation_id = request.data.get('conversation_id')
     
+    # If no conversation_id, create one
+    if not conversation_id or conversation_id == 'null' or conversation_id == 'undefined':
+        conversation_id = db_client.create_conversation(title=query_text[:50] if query_text else "New Image Chat")
+    
+    # Save user message
+    user_message = {
+        "role": "user",
+        "content": query_text,
+        "timestamp": datetime.utcnow().isoformat(),
+        "id": str(ObjectId())
+    }
+    
+    # Handle user image if present (we'll store the base64 or path, but for now just acknowledge)
+    if query_image:
+        # For simplicity, we'll store the user image as base64 in the DB if small, or just a placeholder
+        # In a real app, you'd upload to S3/Cloudinary and store the URL
+        user_message["has_image"] = True
+
+    db_client.add_message(conversation_id, user_message)
+
     text_embedding = get_text_embedding(text = query_text, model = text_model)
     image_embedding = get_image_embedding(image = query_image, processor = image_processor, model = image_model)
     
@@ -79,13 +103,53 @@ def GetResponse(request):
             Text: {text}
     '''
 
-    final_response = generate_answer(gemini_model = 'gemini-2.5-flash-lite' , GEMINI_API_KEY = os.getenv('GEMINI_API_KEY') , contents = content)
+    final_response = generate_answer(gemini_model = 'gemini-2.5-flash' , GEMINI_API_KEY = os.getenv('GEMINI_API_KEY') , contents = content)
+
+    # Save assistant message
+    assistant_message = {
+        "role": "assistant",
+        "content": final_response,
+        "similarityImage": image,
+        "timestamp": datetime.utcnow().isoformat(),
+        "id": str(ObjectId()) 
+    }
+    db_client.add_message(conversation_id, assistant_message)
 
     return Response({
         "status": "ok",
         "text": final_response,
-        "image": image
+        "image": image,
+        "conversation_id": conversation_id
     })
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def ListConversations(request):
+    conversations = db_client.get_conversations()
+    return Response(conversations)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def GetConversation(request, conversation_id):
+    conversation = db_client.get_conversation(conversation_id)
+    if conversation:
+        return Response(conversation)
+    return Response({"error": "Conversation not found"}, status=404)
+
+@api_view(['DELETE'])
+@permission_classes([AllowAny])
+def DeleteConversation(request, conversation_id):
+    success = db_client.delete_conversation(conversation_id)
+    if success:
+        return Response({"status": "ok"})
+    return Response({"error": "Failed to delete"}, status=400)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def CreateConversation(request):
+    title = request.data.get('title', 'New Chat')
+    conversation_id = db_client.create_conversation(title=title)
+    return Response({"conversation_id": conversation_id})
 
 def get_image(image_name, root_path):
     if not image_name:
