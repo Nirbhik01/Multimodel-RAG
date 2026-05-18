@@ -43,8 +43,13 @@ def GetResponse(request):
 
     root_path = Path(__file__).parent.parent.parent
     json_data_path = root_path / 'data' / 'processed' / 'embedding_input.json'
-    with open(json_data_path, 'r') as file:
-        json_data = json.load(file)
+    
+    try:
+        with open(json_data_path, 'r') as file:
+            json_data = json.load(file)
+    except Exception as e:
+        logger.error(f"Failed to load json data: {e}")
+        json_data = []
 
     # Reading from multipart/form-data POST request
     query_text = request.data.get('query')
@@ -63,35 +68,61 @@ def GetResponse(request):
         "id": str(ObjectId())
     }
     
-    # Handle user image if present (we'll store the base64 or path, but for now just acknowledge)
+    # Handle user image if present
     if query_image:
-        # For simplicity, we'll store the user image as base64 in the DB if small, or just a placeholder
-        # In a real app, you'd upload to S3/Cloudinary and store the URL
-        user_message["has_image"] = True
+        try:
+            # Read image content and convert to base64 for storage
+            query_image.seek(0)
+            image_content = query_image.read()
+            encoded_string = base64.b64encode(image_content).decode('utf-8')
+            # Determine content type (defaulting to image/png if not available)
+            content_type = getattr(query_image, 'content_type', 'image/png')
+            user_message["image"] = f"data:{content_type};base64,{encoded_string}"
+            user_message["has_image"] = True
+            
+            # Reset file pointer for subsequent use in get_image_embedding
+            query_image.seek(0)
+        except Exception as e:
+            logger.error(f"Error processing user image: {e}")
+            user_message["has_image"] = False
 
     db_client.add_message(conversation_id, user_message)
 
-    text_embedding = get_text_embedding(text = query_text, model = text_model)
-    image_embedding = get_image_embedding(image = query_image, processor = image_processor, model = image_model)
+    # Initialize vectors
+    text_vectors = []
+    image_vectors = []
+
+    # Get embeddings and query vector DB if inputs are present
+    if query_text and query_text.strip():
+        text_embedding = get_text_embedding(text = query_text, model = text_model)
+        text_vectors = query_vector_db(query_vector = text_embedding, index = index)
     
-    text_vectors = query_vector_db(query_vector = text_embedding, index = index)
-    image_vectors = query_vector_db(query_vector = image_embedding, index = index)
+    if query_image:
+        image_embedding = get_image_embedding(image = query_image, processor = image_processor, model = image_model)
+        image_vectors = query_vector_db(query_vector = image_embedding, index = index)
 
     combined_scores = {}
 
     for r in text_vectors:
-        oid = r.metadata["original_id"]
-        combined_scores[oid] = combined_scores.get(oid, 0) + 0.6 * r.score
+        if r.metadata and "original_id" in r.metadata:
+            oid = r.metadata["original_id"]
+            combined_scores[oid] = combined_scores.get(oid, 0) + 0.6 * r.score
 
     for r in image_vectors:
-        oid = r.metadata["original_id"]
-        combined_scores[oid] = combined_scores.get(oid, 0) + 0.4 * r.score
+        if r.metadata and "original_id" in r.metadata:
+            oid = r.metadata["original_id"]
+            combined_scores[oid] = combined_scores.get(oid, 0) + 0.4 * r.score
 
-    logger.info(f'scores : %.100s' % combined_scores)
+    logger.info(f'scores : {str(combined_scores)[:100]}')
 
     final_results = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
 
-    # logger.info(f'final result : {final_results}')
+    if not final_results:
+        return Response({
+            "status": "error",
+            "text": "No relevant results found for your query.",
+            "conversation_id": conversation_id
+        }, status=404)
 
     image_name, text = get_image_name_and_text(id = final_results[0][0], json_data = json_data)
     image = get_image(image_name = image_name, root_path = root_path)
@@ -170,4 +201,4 @@ def get_image_name_and_text(id, json_data):
     for item in json_data:
         if item['id'] == id:
             return item['image'], item['text']
-    
+    return None, None
