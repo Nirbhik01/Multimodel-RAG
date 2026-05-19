@@ -4,3 +4,4 @@ chest-x-ray-data/
 node_modules/
 __pycache__/
 data/
+.vscode/

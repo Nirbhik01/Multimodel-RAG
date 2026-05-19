@@ -95,25 +95,15 @@ def GetResponse(request):
     # Get embeddings and query vector DB if inputs are present
     if query_text and query_text.strip():
         text_embedding = get_text_embedding(text = query_text, model = text_model)
-        text_vectors = query_vector_db(query_vector = text_embedding, index = index)
+        text_vectors = query_vector_db(query_vector = text_embedding, index = index, vector_type = 'text')
     
     if query_image:
         image_embedding = get_image_embedding(image = query_image, processor = image_processor, model = image_model)
-        image_vectors = query_vector_db(query_vector = image_embedding, index = index)
+        image_vectors = query_vector_db(query_vector = image_embedding, index = index, vector_type = 'image')
 
-    combined_scores = {}
+    combined_scores = rank_results(text_vectors, image_vectors)
 
-    for r in text_vectors:
-        if r.metadata and "original_id" in r.metadata:
-            oid = r.metadata["original_id"]
-            combined_scores[oid] = combined_scores.get(oid, 0) + 0.6 * r.score
-
-    for r in image_vectors:
-        if r.metadata and "original_id" in r.metadata:
-            oid = r.metadata["original_id"]
-            combined_scores[oid] = combined_scores.get(oid, 0) + 0.4 * r.score
-
-    logger.info(f'scores : {str(combined_scores)[:100]}')
+    logger.info(f'scores : {combined_scores}')
 
     final_results = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
 
@@ -202,3 +192,22 @@ def get_image_name_and_text(id, json_data):
         if item['id'] == id:
             return item['image'], item['text']
     return None, None
+
+def rank_results(text_vectors, image_vectors):
+    # Reciprocal Rank Fusion (RRF)
+    # Formula: Score(d) = sum_{m} ( weight_m / (k + rank_m(d)) )
+    # Using k = 60 as per standard RRF literature
+    k = 60
+    combined_scores = {}
+
+    for rank, r in enumerate(text_vectors, start=1):
+        if r.metadata and "original_id" in r.metadata:
+            oid = r.metadata["original_id"]
+            combined_scores[oid] = combined_scores.get(oid, 0.0) + 0.6 / (k + rank)
+
+    for rank, r in enumerate(image_vectors, start=1):
+        if r.metadata and "original_id" in r.metadata:
+            oid = r.metadata["original_id"]
+            combined_scores[oid] = combined_scores.get(oid, 0.0) + 0.4 / (k + rank)
+
+    return combined_scores
