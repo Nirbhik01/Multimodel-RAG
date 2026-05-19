@@ -132,22 +132,44 @@ export default function HomePage() {
                 throw new Error(`Server responded with ${response.status}: ${response.statusText}`)
             }
 
-            const data = await response.json()
-            
-            // Update active conversation ID if it was newly created
-            if (!currentConvId && data.conversation_id) {
-                setActiveConvId(data.conversation_id)
-                fetchConversations()
-            }
+            const reader = response.body.getReader()
+            const decoder = new TextDecoder("utf-8")
+            let buffer = ""
 
-            const assistantMessage = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: data.text.replace("Impression:", "\n\nImpression:"),
-                similarityImage: data.image
-            }
+            while (true) {
+                const { value, done } = await reader.read()
+                if (done) break
 
-            setMessages(prev => [...prev, assistantMessage])
+                buffer += decoder.decode(value, { stream: true })
+                const lines = buffer.split("\n")
+                buffer = lines.pop()
+
+                for (const line of lines) {
+                    if (line.trim()) {
+                        try {
+                            const data = JSON.parse(line)
+                            
+                            if (data.status === "init" && data.conversation_id) {
+                                if (!currentConvId) {
+                                    setActiveConvId(data.conversation_id)
+                                    fetchConversations()
+                                }
+                            } else if (data.status === "message" && data.response) {
+                                const resp = data.response
+                                const newAssistantMessage = {
+                                    id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                                    role: 'assistant',
+                                    content: resp.text.replace("Impression:", "\n\nImpression:"),
+                                    similarityImage: resp.image
+                                }
+                                setMessages(prev => [...prev, newAssistantMessage])
+                            }
+                        } catch (err) {
+                            console.error("Failed to parse JSON chunk:", err, line)
+                        }
+                    }
+                }
+            }
         } catch (err) {
             console.error("Error during submission:", err)
             setError(err.message || "Failed to connect to the backend server.")
