@@ -114,17 +114,83 @@ def GetResponse(request):
             "conversation_id": conversation_id
         }, status=404)
 
-    image_name, text = get_image_name_and_text(id = final_results[0][0], json_data = json_data)
-    image = get_image(image_name = image_name, root_path = root_path)
+    # Retrieve top 2 reference cases for two-case prompting
+    top_results = final_results[:2]
+    reference_cases = []
+    image_bytes_list = []
+    
+    # Store the first reference case image for frontend display backwards compatibility
+    image = None
 
-    content = f'''
-        User input data:
-            Query: {query_text}
-        Similar data according to rag:
-            Text: {text}
-    '''
+    # Load patient's image if present
+    if query_image:
+        try:
+            query_image.seek(0)
+            patient_img_bytes = query_image.read()
+            image_bytes_list.append(patient_img_bytes)
+            query_image.seek(0)
+        except Exception as e:
+            logger.error(f"Error reading patient's query image bytes: {e}")
 
-    final_response = generate_answer(gemini_model = 'gemini-2.5-flash' , GEMINI_API_KEY = os.getenv('GEMINI_API_KEY') , contents = content)
+    for idx, (oid, score) in enumerate(top_results):
+        image_name, text = get_image_name_and_text(id = oid, json_data = json_data)
+        
+        if idx == 0:
+            image = get_image(image_name = image_name, root_path = root_path)
+            
+        if image_name:
+            data_path = root_path / 'data' / 'images' / 'images_normalized' / image_name
+            if data_path.exists():
+                try:
+                    with open(data_path, 'rb') as img_f:
+                        image_bytes_list.append(img_f.read())
+                except Exception as e:
+                    logger.error(f"Error reading reference image {image_name}: {e}")
+                    
+        reference_cases.append({
+            "id": oid,
+            "text": text,
+            "image_name": image_name
+        })
+
+    # Construct structured XML-like context prompt
+    content_parts = []
+    content_parts.append("<current_patient>")
+    if query_text:
+        content_parts.append(f"  <query>{query_text}</query>")
+    content_parts.append("</current_patient>\n")
+    
+    content_parts.append("<similar_reference_cases>")
+    for idx, case in enumerate(reference_cases, start=1):
+        content_parts.append(f"  <case index='{idx}'>")
+        content_parts.append(f"    <report_text>{case['text']}</report_text>")
+        content_parts.append(f"  </case>")
+    content_parts.append("</similar_reference_cases>")
+    
+    content = "\n".join(content_parts)
+
+    system_prompt = """
+    You are an expert Radiologist AI Assistant. You specialize in analyzing chest X-rays and interpreting clinical findings.
+    
+    You will be provided with:
+    1. A Current Patient's X-ray image (if provided) and their preliminary query/observations.
+    2. One or two Reference X-ray images and their corresponding Reports (Findings and Impression) from similar cases.
+    
+    Your Task:
+    - Compare the current Patient's X-ray image with the Reference X-ray images.
+    - Evaluate the patient's query against both the visual evidence and the reference cases.
+    - Provide a professional, concise, and accurate Radiology Report for the Current Patient.
+    - Structure your output clearly with 'Findings' and 'Impression' sections.
+    - Highlight any significant similarities or differences between the current case and the reference cases that aided your analysis.
+    """
+
+    ollama_model = os.getenv('OLLAMA_MODEL', 'qwen2')
+    final_response = generate_answer(
+        model_name = ollama_model,
+        system_prompt = system_prompt,
+        prompt_text = content,
+        images = image_bytes_list
+    )
 
     # Save assistant message
     assistant_message = {

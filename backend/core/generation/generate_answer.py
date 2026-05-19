@@ -1,39 +1,57 @@
-from google import genai
-import os
+import ollama
+import logging
 
-'''
-    from dotenv import load_dotenv
-    load_dotenv()
+logger = logging.getLogger(__name__)
 
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-    # This is only needed if you run this module by itself
-'''
-
-def generate_answer(gemini_model, GEMINI_API_KEY, contents):
-
-    system_prompt = """
-    You are an expert Radiologist AI Assistant. You specialize in analyzing chest X-rays and interpreting clinical findings.
-    
-    You will be provided with:
-    1. A Current Patient's X-ray image and their preliminary query/observations.
-    2. A Reference X-ray image and its corresponding Report (Findings and Impression) from a similar case.
-    
-    Your Task:
-    - Compare the current Patient's image with the Reference image.
-    - Evaluate the patient's query against both the visual evidence and the reference case.
-    - Provide a professional, concise, and accurate Radiology Report for the Current Patient.
-    - Structure your output clearly with 'Findings' and 'Impression' sections.
-    - Highlight any significant similarities or differences between the current case and the reference case that aided your analysis.
+def preload_model(model_name):
     """
+    Pre-loads the specified model into Ollama memory to avoid latency on the first request.
+    """
+    try:
+        logger.info(f"Pre-loading Ollama model '{model_name}'...")
+        # Pre-load model by calling generate with empty prompt and keep_alive='-1' (keep in memory indefinitely)
+        ollama.generate(model=model_name, keep_alive='-1')
+        logger.info(f"Successfully pre-loaded Ollama model '{model_name}' into memory.")
+    except Exception as e:
+        logger.warning(f"Could not pre-load Ollama model '{model_name}': {e}. Ensure Ollama is running and '{model_name}' is installed.")
+
+def generate_answer(model_name, system_prompt, prompt_text, images=None):
+    """
+    Generates a radiological interpretation using local Ollama model (e.g., qwen2).
     
-    client = genai.Client(api_key=GEMINI_API_KEY)
-
-    # Prepend the system prompt to the context
-    full_contents = system_prompt + contents
-
-    response = client.models.generate_content(
-        model=gemini_model,
-        contents=full_contents
-    )
-    return response.text
+    Parameters:
+    - model_name (str): Name of the Ollama model (e.g., 'qwen2').
+    - system_prompt (str): High-level system instructions for the LLM.
+    - prompt_text (str): Structured user query and reference reports.
+    - images (list): List of image bytes representing the patient's and reference cases' scans.
+    """
+    messages = []
+    
+    # 1. Add system prompt if provided
+    if system_prompt:
+        messages.append({
+            'role': 'system',
+            'content': system_prompt
+        })
+        
+    # 2. Add user prompt and attach images if present
+    user_message = {
+        'role': 'user',
+        'content': prompt_text
+    }
+    
+    if images:
+        user_message['images'] = images
+        
+    messages.append(user_message)
+    
+    try:
+        response = ollama.chat(
+            model=model_name,
+            messages=messages
+        )
+        return response['message']['content']
+    except Exception as e:
+        logger.error(f"Error calling Ollama with model '{model_name}': {e}")
+        # Return a fallback response
+        return f"Error: Failed to generate answer using local model '{model_name}'. Make sure Ollama is running and '{model_name}' is installed."
