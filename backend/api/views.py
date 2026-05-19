@@ -194,20 +194,20 @@ def get_image_name_and_text(id, json_data):
     return None, None
 
 def rank_results(text_vectors, image_vectors):
-    # Reciprocal Rank Fusion (RRF)
-    # Formula: Score(d) = sum_{m} ( weight_m / (k + rank_m(d)) )
-    # Using k = 60 as per standard RRF literature
+    # Standard Reciprocal Rank Fusion (RRF)
+    # Formula: Score(d) = sum_{m} ( 1 / (k + rank_m(d)) )
+    # k = 60 as per standard RRF literature. Treats both modalities with equal importance.
     k = 60
     combined_scores = {}
 
     for rank, r in enumerate(text_vectors, start=1):
         if r.metadata and "original_id" in r.metadata:
             oid = r.metadata["original_id"]
-            combined_scores[oid] = combined_scores.get(oid, 0.0) + 0.6 / (k + rank)
+            combined_scores[oid] = combined_scores.get(oid, 0.0) + 1.0 / (k + rank)
 
     for rank, r in enumerate(image_vectors, start=1):
         if r.metadata and "original_id" in r.metadata:
             oid = r.metadata["original_id"]
-            combined_scores[oid] = combined_scores.get(oid, 0.0) + 0.4 / (k + rank)
+            combined_scores[oid] = combined_scores.get(oid, 0.0) + 1.0 / (k + rank)
 
     return combined_scores
