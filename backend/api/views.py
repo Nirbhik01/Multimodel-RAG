@@ -311,6 +311,8 @@ def GetResponse(request):
             - **Draft Findings & Impression**: Outline the Findings and Impression for the patient based on this comparison.
             - **Similarities & Differences**: List the similarities and differences between the patient's case and the reference case.
             ---
+
+            (Note: dont assign number to images just say user uploaded and reference image in your response)
             """
 
             ollama_model = os.getenv('OLLAMA_MODEL', 'qwen2')

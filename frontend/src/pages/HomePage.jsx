@@ -286,7 +286,7 @@ export default function HomePage() {
                             </div>
                         ))}
 
-                        {isLoading && !activeConvId && messages.length > 0 && (
+                        {isLoading && (
                             <div className="flex justify-start animate-pulse">
                                 <div className="flex gap-4 max-w-[75%] items-start">
                                     <div className="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
@@ -391,4 +391,4 @@ export default function HomePage() {
             </div>
         </div>
     )
-}
+}
