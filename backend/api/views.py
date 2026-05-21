@@ -286,6 +286,7 @@ def GetResponse(request):
         - Produce a final radiology Findings section
         - Produce a final Impression section
         - Assign a confidence level
+        - Dont mention any sensitive relation about the cases like id's, names, patient info etc.
 
         Return output in this exact format:
 
