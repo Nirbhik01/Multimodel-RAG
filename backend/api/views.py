@@ -286,6 +286,7 @@ def GetResponse(request):
         - Produce a final radiology Findings section
         - Produce a final Impression section
         - Assign a confidence level
+        - Focus just a tad bit more on the conditions that the patient's facing in reference as well as user's case while comparing rather than other things i.e. say there are 5 aspects to compare and condition is one of them, ideally you'd focus 20% on each aspect but on condition i want you to focus about 21-22%.
         - Dont mention any sensitive relation about the cases like id's, names, patient info etc.
 
         Return output in this exact format:
