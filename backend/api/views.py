@@ -30,6 +30,15 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Create your views here.
+JSON_DATA = None
+ROOT_PATH = Path(__file__).parent.parent.parent
+try:
+    json_data_path = ROOT_PATH / "data" / "processed" / "embedding_input.json"
+    with open(json_data_path, "r") as file:
+        JSON_DATA = json.load(file)
+except Exception as e:
+    logger.error(f"Failed to load json data: {e}")
+    JSON_DATA = []
 
 
 def compress_image_bytes(image_bytes, max_size=(512, 512)):
@@ -60,15 +69,8 @@ def GetResponse(request):
         url=UPSTASH_VECTOR_REST_URL, token=UPSTASH_VECTOR_READ_ONLY_REST_TOKEN
     )
 
-    root_path = Path(__file__).parent.parent.parent
-    json_data_path = root_path / "data" / "processed" / "embedding_input.json"
-
-    try:
-        with open(json_data_path, "r") as file:
-            json_data = json.load(file)
-    except Exception as e:
-        logger.error(f"Failed to load json data: {e}")
-        json_data = []
+    root_path = ROOT_PATH
+    json_data = JSON_DATA
 
     query_text = request.data.get("query")
     query_image = request.FILES.get("image")
@@ -147,86 +149,18 @@ def GetResponse(request):
         f"[GetResponse] Combined score matches (intersection if both are active): {list(combined_scores.keys())}"
     )
 
-    # 1. Joint overlapping case (best score in combined_scores)
-    joint_results = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
-    top_joint_id = joint_results[0][0] if joint_results else None
-    logger.info(f"[GetResponse] Selected top joint ID: {top_joint_id}")
-
-    # 2. Best text-only match (highest score in text_vectors that is NOT present in combined_scores)
-    top_text_only_id = None
-    sorted_text_vectors = sorted(
-        text_vectors,
-        key=lambda r: r.score if hasattr(r, "score") else 0.0,
+    joint_results = sorted(
+        combined_scores.items(),
+        key=lambda x: x[1],
         reverse=True,
     )
-    for r in sorted_text_vectors:
-        if r.metadata and "original_id" in r.metadata:
-            oid = r.metadata["original_id"]
-            if oid not in combined_scores:
-                top_text_only_id = oid
-                break
-    logger.info(f"[GetResponse] Selected top text-only ID: {top_text_only_id}")
 
-    # 3. Best image-only match
-    top_image_only_id = None
-    sorted_image_vectors = sorted(
-        image_vectors,
-        key=lambda r: r.score if hasattr(r, "score") else 0.0,
-        reverse=True,
-    )
-    for r in sorted_image_vectors:
-        if r.metadata and "original_id" in r.metadata:
-            oid = r.metadata["original_id"]
-            if oid not in combined_scores:
-                top_image_only_id = oid
-                break
-    logger.info(f"[GetResponse] Selected top image-only ID: {top_image_only_id}")
+    top_cases = joint_results[:5]
 
-    selected_cases = []
-    if top_joint_id:
-        selected_cases.append(("joint", top_joint_id))
-    if top_text_only_id:
-        selected_cases.append(("text_only", top_text_only_id))
-    if top_image_only_id:
-        selected_cases.append(("image_only", top_image_only_id))
-
-    if not selected_cases:
-        logger.info(
-            "[GetResponse] selected_cases is empty. Attempting single-modality fallbacks..."
-        )
-        if text_vectors:
-            sorted_text = sorted(
-                text_vectors,
-                key=lambda r: r.score if hasattr(r, "score") else 0.0,
-                reverse=True,
-            )
-            for r in sorted_text:
-                if r.metadata and "original_id" in r.metadata:
-                    selected_cases.append(("text_fallback", r.metadata["original_id"]))
-                    break
-        elif image_vectors:
-            sorted_image = sorted(
-                image_vectors,
-                key=lambda r: r.score if hasattr(r, "score") else 0.0,
-                reverse=True,
-            )
-            for r in sorted_image:
-                if r.metadata and "original_id" in r.metadata:
-                    selected_cases.append(("image_fallback", r.metadata["original_id"]))
-                    break
-
-    logger.info(f"[GetResponse] Selected cases to present to LLM: {selected_cases}")
-
-    if not selected_cases:
-        logger.warning("[GetResponse] No selected cases could be resolved.")
-        return Response(
-            {
-                "status": "error",
-                "text": "No relevant results found for your query.",
-                "conversation_id": conversation_id,
-            },
-            status=404,
-        )
+    selected_cases = [
+        ("retrieved_case", oid)
+        for oid, _ in top_cases
+    ]
 
     image_bytes_list = []
     image = None
@@ -287,127 +221,154 @@ def GetResponse(request):
     from django.http import StreamingHttpResponse
 
     def stream_responses():
-        logger.info("[stream_responses] Initiating response stream back to client...")
-        # Yield the initialization status and conversation ID
-        yield json.dumps({"status": "init", "conversation_id": conversation_id}) + "\n"
+        logger.info("[stream_responses] Initiating SINGLE multimodal response stream...")
 
-        for idx, case in enumerate(reference_metadata, 1):
-            case_type = case["type"]
+        yield json.dumps(
+            {
+                "status": "init",
+                "conversation_id": conversation_id,
+            }
+        ) + "\n"
+
+        candidate_cases = []
+
+        for idx, case in enumerate(reference_metadata):
+
             case_id = case["id"]
+            case_type = case["type"]
             case_text = case["text"]
 
-            logger.info(
-                f"[stream_responses] Processing Case {idx}/{len(reference_metadata)}: type={case_type}, id={case_id}"
+            ref_image_name, _ = get_image_name_and_text(
+                id=case_id,
+                json_data=json_data,
             )
 
-            # Determine subset of images for this specific case (Patient image #1 + Case image #2 if present)
-            case_images = []
-            if has_patient_image:
-                case_images.append(image_bytes_list[0])
+            ref_image_b64 = get_image(
+                image_name=ref_image_name,
+                root_path=root_path,
+            )
 
-            # Retrieve the case-specific image from the global list
+            candidate_cases.append(
+                {
+                    "id": case_id,
+                    "type": case_type,
+                    "report": case_text,
+                }
+            )
+
+        prompt_text = f"""
+        <current_patient>
+        <query>
+        {query_text}
+        </query>
+        </current_patient>
+
+        <retrieved_reference_cases>
+
+        {json.dumps(candidate_cases, indent=2)}
+
+        </retrieved_reference_cases>
+        """
+
+        system_prompt = """
+        You are an expert Radiologist AI Assistant.
+
+        You are given:
+        1. A patient's X-ray and clinical text
+        2. Multiple retrieved reference cases
+
+        Your tasks:
+
+        - Compare all retrieved cases
+        - Determine which reference case best matches the patient
+        - Explain why
+        - Mention conflicting evidence if present
+        - Produce a final radiology Findings section
+        - Produce a final Impression section
+        - Assign a confidence level
+
+        Return output in this exact format:
+
+        ---
+        ### Retrieval Analysis
+        - Best Matching Case:
+        - Why It Matches:
+        - Conflicting Evidence:
+        - Confidence Level:
+
+        ### Final Findings
+        ...
+
+        ### Final Impression
+        ...
+        ---
+        """
+
+        all_images = []
+
+        if has_patient_image:
+            all_images.append(image_bytes_list[0])
+
+        for idx, case in enumerate(reference_metadata):
+
             if case["has_image"]:
-                meta_index = reference_metadata.index(case)
-                img_index = (1 + meta_index) if has_patient_image else meta_index
+
+                img_index = (
+                    idx + 1
+                    if has_patient_image
+                    else idx
+                )
+
                 if img_index < len(image_bytes_list):
-                    case_images.append(image_bytes_list[img_index])
-                    logger.info(
-                        f"[stream_responses] Case has valid reference image. Attaching case image at index {img_index}."
+                    all_images.append(
+                        image_bytes_list[img_index]
                     )
 
-            single_case_prompt = f"""
-                <current_patient>
-                <query>{query_text}</query>
-                </current_patient>
+        ollama_model = os.getenv("OLLAMA_MODEL", "qwen2")
 
-                <reference_case type="{case_type}" id="{case_id}">
-                <report_text>{case_text}</report_text>
-                </reference_case>
-            """
+        try:
 
-            if case_type == "joint":
-                title = f"🔬 COMPARISON 1: Joint Clinical & Visual Match "
-                case_desc = "Evaluate the Patient's data against this highly correlated case that matches both visually and textually."
-            elif case_type == "text_only":
-                title = f"✍️ COMPARISON 2: Best Clinical Match "
-                case_desc = "Evaluate the Patient's clinical symptoms against this case which has the closest textual diagnosis."
-            elif case_type == "image_only":
-                title = f"📸 COMPARISON 3: Best Visual Match "
-                case_desc = "Evaluate the Patient's visual scans against this case which has the closest morphological visual pattern."
-            else:
-                title = f"🔍 COMPARISON: Reference Case Match "
-                case_desc = (
-                    "Evaluate the Patient's data against this similar clinical match."
-                )
+            logger.info(
+                f"[stream_responses] Running SINGLE LLM inference with {len(candidate_cases)} retrieved cases."
+            )
 
-            system_prompt = f"""
-            You are an expert Radiologist AI Assistant. You specialize in analyzing chest X-rays and interpreting clinical findings.
-            
-            Your task is to generate:
-            {title}
-            
-            Context detail: {case_desc}
-            
-            Generate a professional comparative report in the following exact format:
-            ---
-            ### {title}
-            - **Visual Comparison**: Compare the patient's X-ray (Image #1) with the reference X-ray (Image #2 if provided). Highlight identical features or subtle differences.
-            - **Clinical Interpretation**: Compare the patient's symptoms/observations with the reference report.
-            - **Draft Findings & Impression**: Outline the Findings and Impression for the patient based on this comparison.
-            - **Similarities & Differences**: List the similarities and differences between the patient's case and the reference case.
-            ---
+            response_text = generate_answer(
+                model_name=ollama_model,
+                system_prompt=system_prompt,
+                prompt_text=prompt_text,
+                images=all_images,
+            )
 
-            (Note: dont assign number to images just say user uploaded and reference image in your response)
-            """
+        except Exception as e:
 
-            ollama_model = os.getenv("OLLAMA_MODEL", "qwen2")
-            try:
-                logger.info(
-                    f"[stream_responses] Invoking local Ollama model '{ollama_model}' for Case ID {case_id}. Image count: {len(case_images)}."
-                )
-                response_text = generate_answer(
-                    model_name=ollama_model,
-                    system_prompt=system_prompt,
-                    prompt_text=single_case_prompt,
-                    images=case_images,
-                )
-                logger.info(
-                    f"[stream_responses] Successfully generated clinical response from Ollama for Case ID {case_id}. Length: {len(response_text)} chars."
-                )
-            except Exception as e:
-                logger.error(
-                    f"[stream_responses] Error calling generate_answer for case {case_id}: {e}"
-                )
-                response_text = f"An error occurred while analyzing reference case {case_id}: {str(e)}"
+            logger.error(
+                f"[stream_responses] Error during single LLM inference: {e}"
+            )
 
-            ref_image_name, _ = get_image_name_and_text(id=case_id, json_data=json_data)
-            ref_image_b64 = get_image(image_name=ref_image_name, root_path=root_path)
+            response_text = f"An error occurred: {str(e)}"
 
-            assistant_message = {
-                "role": "assistant",
-                "content": response_text,
-                "similarityImage": ref_image_b64,
-                "timestamp": datetime.utcnow().isoformat(),
-                "id": str(ObjectId()),
+        assistant_message = {
+            "role": "assistant",
+            "content": response_text,
+            "timestamp": datetime.utcnow().isoformat(),
+            "id": str(ObjectId()),
+        }
+
+        db_client.add_message(
+            conversation_id,
+            assistant_message,
+        )
+
+        yield json.dumps(
+            {
+                "status": "message",
+                "response": {
+                    "text": response_text,
+                },
             }
-            logger.info(
-                f"[stream_responses] Saving assistant message for Case ID {case_id} to conversation {conversation_id} in MongoDB..."
-            )
-            db_client.add_message(conversation_id, assistant_message)
+        ) + "\n"
 
-            # Yield single response back to the client immediately
-            logger.info(
-                f"[stream_responses] Yielding parsed JSON chunk back to client stream for Case ID {case_id}..."
-            )
-            yield json.dumps(
-                {
-                    "status": "message",
-                    "response": {"text": response_text, "image": ref_image_b64},
-                }
-            ) + "\n"
-
-        logger.info("[stream_responses] Response stream generation complete.")
-
+        logger.info("[stream_responses] Single response completed.")
     return StreamingHttpResponse(stream_responses(), content_type="application/json")
 
 
@@ -498,12 +459,22 @@ def rank_results(text_vectors, image_vectors, k=60):
     combined_scores = {}
 
     if text_ranks and image_ranks:
-        intersection_ids = set(text_ranks.keys()) & set(image_ranks.keys())
-        for oid in intersection_ids:
-            # Reciprocal Rank Fusion (RRF) formula
-            combined_scores[oid] = (1.0 / (k + text_ranks[oid])) + (
-                1.0 / (k + image_ranks[oid])
+        all_ids = set(text_ranks.keys()) | set(image_ranks.keys())
+
+        for oid in all_ids:
+            text_rrf = (
+                1.0 / (k + text_ranks[oid])
+                if oid in text_ranks
+                else 0
             )
+
+            image_rrf = (
+                1.0 / (k + image_ranks[oid])
+                if oid in image_ranks
+                else 0
+            )
+
+            combined_scores[oid] = text_rrf + image_rrf
 
     elif text_ranks:
         for oid, rank in text_ranks.items():
@@ -514,3 +485,4 @@ def rank_results(text_vectors, image_vectors, k=60):
             combined_scores[oid] = 1.0 / (k + rank)
 
     return combined_scores
+ 
