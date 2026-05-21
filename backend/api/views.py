@@ -66,16 +66,13 @@ def GetResponse(request):
         logger.error(f"Failed to load json data: {e}")
         json_data = []
 
-    # Reading from multipart/form-data POST request
     query_text = request.data.get('query')
     query_image = request.FILES.get('image')
     conversation_id = request.data.get('conversation_id')
-    
-    # If no conversation_id, create one
+
     if not conversation_id or conversation_id == 'null' or conversation_id == 'undefined':
         conversation_id = db_client.create_conversation(title=query_text[:50] if query_text else "New Image Chat")
     
-    # Save user message
     user_message = {
         "role": "user",
         "content": query_text,
@@ -83,14 +80,13 @@ def GetResponse(request):
         "id": str(ObjectId())
     }
     
-    # Handle user image if present
     if query_image:
         try:
             # Read image content and convert to base64 for storage
             query_image.seek(0)
             image_content = query_image.read()
             encoded_string = base64.b64encode(image_content).decode('utf-8')
-            # Determine content type (defaulting to image/png if not available)
+
             content_type = getattr(query_image, 'content_type', 'image/png')
             user_message["image"] = f"data:{content_type};base64,{encoded_string}"
             user_message["has_image"] = True
@@ -103,13 +99,11 @@ def GetResponse(request):
 
     db_client.add_message(conversation_id, user_message)
 
-    # Initialize vectors
     text_vectors = []
     image_vectors = []
 
     logger.info(f"[GetResponse] Entered. Query text length: {len(query_text) if query_text else 0}. Query image provided: {query_image is not None}")
 
-    # Get embeddings and query vector DB if inputs are present
     if query_text and query_text.strip():
         logger.info("[GetResponse] Generating text embedding...")
         text_embedding = get_text_embedding(text = query_text, model = text_model)
@@ -145,7 +139,7 @@ def GetResponse(request):
                 break
     logger.info(f"[GetResponse] Selected top text-only ID: {top_text_only_id}")
 
-    # 3. Best image-only match (highest score in image_vectors that is NOT present in combined_scores)
+    # 3. Best image-only match
     top_image_only_id = None
     sorted_image_vectors = sorted(image_vectors, key=lambda r: r.score if hasattr(r, 'score') else 0.0, reverse=True)
     for r in sorted_image_vectors:
@@ -156,7 +150,6 @@ def GetResponse(request):
                 break
     logger.info(f"[GetResponse] Selected top image-only ID: {top_image_only_id}")
 
-    # Gather selected reference cases
     selected_cases = []
     if top_joint_id:
         selected_cases.append(("joint", top_joint_id))
@@ -165,7 +158,6 @@ def GetResponse(request):
     if top_image_only_id:
         selected_cases.append(("image_only", top_image_only_id))
 
-    # Fallback if both set calculations left selected_cases empty (e.g. single-modal searches)
     if not selected_cases:
         logger.info("[GetResponse] selected_cases is empty. Attempting single-modality fallbacks...")
         if text_vectors:
@@ -194,7 +186,7 @@ def GetResponse(request):
     image_bytes_list = []
     image = None
 
-    # 1. Load patient's image if present
+
     has_patient_image = False
     if query_image:
         try:
@@ -208,7 +200,6 @@ def GetResponse(request):
         except Exception as e:
             logger.error(f"[GetResponse] Error reading patient's query image bytes: {e}")
 
-    # 2. Load selected reference cases
     reference_metadata = []
     for case_type, oid in selected_cases:
         image_name, text = get_image_name_and_text(id = oid, json_data = json_data)
@@ -242,7 +233,6 @@ def GetResponse(request):
 
     from django.http import StreamingHttpResponse
 
-    # Construct the streaming generator
     def stream_responses():
         logger.info("[stream_responses] Initiating response stream back to client...")
         # Yield the initialization status and conversation ID
@@ -271,7 +261,6 @@ def GetResponse(request):
                     case_images.append(image_bytes_list[img_index])
                     logger.info(f"[stream_responses] Case has valid reference image. Attaching case image at index {img_index}.")
                     
-            # Build comparative prompt for this single case
             single_case_prompt = f"""
                 <current_patient>
                 <query>{query_text}</query>
@@ -329,11 +318,9 @@ def GetResponse(request):
                 logger.error(f"[stream_responses] Error calling generate_answer for case {case_id}: {e}")
                 response_text = f"An error occurred while analyzing reference case {case_id}: {str(e)}"
             
-            # Load the base64 reference image for frontend display mapping
             ref_image_name, _ = get_image_name_and_text(id = case_id, json_data = json_data)
             ref_image_b64 = get_image(image_name = ref_image_name, root_path = root_path)
 
-            # Save assistant message individually in DB
             assistant_message = {
                 "role": "assistant",
                 "content": response_text,
@@ -408,37 +395,41 @@ def get_image_name_and_text(id, json_data):
             return item['image'], item['text']
     return None, None
 
-def rank_results(text_vectors, image_vectors):
-    # Store text scores/metadata in a temporary dictionary
-    text_map = {}
-    for r in text_vectors:
-        if r.metadata and "original_id" in r.metadata:
-            oid = r.metadata["original_id"]
-            text_map[oid] = r.score
+def rank_results(text_vectors, image_vectors, k=60):
 
-    # Store image scores/metadata in a temporary dictionary
-    image_map = {}
-    for r in image_vectors:
+    # Sort text vectors in descending order of score to assign ranks
+    sorted_text_vectors = sorted(text_vectors, key=lambda r: r.score if hasattr(r, 'score') else 0.0, reverse=True)
+    text_ranks = {}
+    for idx, r in enumerate(sorted_text_vectors):
         if r.metadata and "original_id" in r.metadata:
             oid = r.metadata["original_id"]
-            image_map[oid] = r.score
+            if oid not in text_ranks: 
+                text_ranks[oid] = idx + 1  # 1-indexed rank
+
+    # Sort image vectors in descending order of score to assign ranks
+    sorted_image_vectors = sorted(image_vectors, key=lambda r: r.score if hasattr(r, 'score') else 0.0, reverse=True)
+    image_ranks = {}
+    for idx, r in enumerate(sorted_image_vectors):
+        if r.metadata and "original_id" in r.metadata:
+            oid = r.metadata["original_id"]
+            if oid not in image_ranks:
+                image_ranks[oid] = idx + 1  # 1-indexed rank
 
     combined_scores = {}
 
-    # If both modalities are active, strictly keep only the intersection (overlapping original_ids)
-    if text_map and image_map:
-        intersection_ids = set(text_map.keys()) & set(image_map.keys())
+    if text_ranks and image_ranks:
+        intersection_ids = set(text_ranks.keys()) & set(image_ranks.keys())
         for oid in intersection_ids:
-            combined_scores[oid] = (0.6 * text_map[oid]) + (0.4 * image_map[oid])
+            # Reciprocal Rank Fusion (RRF) formula
+            combined_scores[oid] = (1.0 / (k + text_ranks[oid])) + (1.0 / (k + image_ranks[oid]))
             
-    # Fallback if only text query was executed
-    elif text_map:
-        for oid, score in text_map.items():
-            combined_scores[oid] = score
-            
-    # Fallback if only image query was executed
-    elif image_map:
-        for oid, score in image_map.items():
-            combined_scores[oid] = score
+    elif text_ranks:
+        for oid, rank in text_ranks.items():
+            combined_scores[oid] = 1.0 / (k + rank)
+
+    elif image_ranks:
+        for oid, rank in image_ranks.items():
+            combined_scores[oid] = 1.0 / (k + rank)
 
     return combined_scores
+    
