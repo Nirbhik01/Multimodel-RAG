@@ -250,7 +250,7 @@ def GetResponse(request):
 
             candidate_cases.append(
                 {
-                    "id": case_id,
+                    "case_label": f"Reference Case {idx + 1}",
                     "type": case_type,
                     "report": case_text,
                 }
@@ -275,35 +275,38 @@ def GetResponse(request):
 
         You are given:
         1. A patient's X-ray and clinical text
-        2. Multiple retrieved reference cases
+        2. Multiple retrieved reference cases (anonymized under labels like "Reference Case 1", "Reference Case 2", etc.)
 
         Your tasks:
+        - Compare all retrieved cases.
+        - Determine which reference case best matches the patient. Refer to this matching case ONLY by its anonymized label (e.g., "Reference Case 1") and never by any database ID, patient name, or sensitive identifier.
+        - Explain why it matches.
+        - Mention conflicting evidence if present.
+        - Produce a final radiology Findings section.
+        - Produce a final Impression section.
+        - Assign a confidence level.
+        - Clinical condition focus instruction (Internal guideline for comparison): Place a slightly higher emphasis (a tad more focus, prioritizing it slightly above other factors like technical parameters or demographic details) on the specific clinical conditions (nature, location, and severity of airspace opacities or consolidations) that the patient and reference cases exhibit.
+        - Provide Suggestions for patient based on the retrieved cases.
 
-        - Compare all retrieved cases
-        - Determine which reference case best matches the patient
-        - Explain why
-        - Mention conflicting evidence if present
-        - Produce a final radiology Findings section
-        - Produce a final Impression section
-        - Assign a confidence level
-        - Focus just a tad bit more on the conditions that the patient's facing in reference as well as user's case while comparing rather than other things i.e. say there are 5 aspects to compare and condition is one of them, ideally you'd focus 20% on each aspect but on condition i want you to focus about 21-22%.
-        - Dont mention any sensitive relation about the cases like id's, names, patient info etc.
+        Strict constraint on response output:
+        - Do NOT include any meta-commentary, feedback, explanations of your thought process, or any mention of percentage targets/internal focus guidelines (such as "21-22%" or "clinical condition focus") in the final response.
+        - Strictly do not mention any real database IDs, names, or patient info. Refer to retrieved cases only as "Reference Case X".
+        - Do not output any text before the opening '---' or after the closing '---'.
 
-        Return output in this exact format:
+        Return output in this exact format, with no extra text:
 
-        ---
         ### Retrieval Analysis
-        - Best Matching Case:
+        - Best Matching Case: [Provide only the matching anonymized label, e.g., Reference Case 1]
         - Why It Matches:
         - Conflicting Evidence:
-        - Confidence Level:
+        - Confidence Level: 
 
         ### Final Findings
         ...
 
         ### Final Impression
         ...
-        ---
+  
         """
 
         all_images = []
@@ -349,9 +352,39 @@ def GetResponse(request):
 
             response_text = f"An error occurred: {str(e)}"
 
+        # Extract the best matching case image for frontend display
+        matched_image_b64 = None
+        try:
+            import re
+            for line in response_text.splitlines():
+                if "Best Matching Case" in line:
+                    digit_match = re.search(r"(\d+)", line)
+                    if digit_match:
+                        case_num = int(digit_match.group(1))
+                        if 1 <= case_num <= len(reference_metadata):
+                            matched_case = reference_metadata[case_num - 1]
+                            matched_case_id = matched_case["id"]
+                            ref_image_name, _ = get_image_name_and_text(id=matched_case_id, json_data=json_data)
+                            matched_image_b64 = get_image(image_name=ref_image_name, root_path=root_path)
+                            logger.info(f"[stream_responses] Extracted matched image for Reference Case {case_num}")
+                            break
+        except Exception as parse_err:
+            logger.error(f"[stream_responses] Error parsing matched case image: {parse_err}")
+
+        # Fallback to the first reference case image if no specific case was successfully parsed
+        if not matched_image_b64 and reference_metadata:
+            try:
+                first_case_id = reference_metadata[0]["id"]
+                ref_image_name, _ = get_image_name_and_text(id=first_case_id, json_data=json_data)
+                matched_image_b64 = get_image(image_name=ref_image_name, root_path=root_path)
+                logger.info("[stream_responses] Fallback: using first reference case image.")
+            except Exception as fallback_err:
+                logger.error(f"[stream_responses] Fallback error loading image: {fallback_err}")
+
         assistant_message = {
             "role": "assistant",
             "content": response_text,
+            "similarityImage": matched_image_b64,
             "timestamp": datetime.utcnow().isoformat(),
             "id": str(ObjectId()),
         }
@@ -366,6 +399,7 @@ def GetResponse(request):
                 "status": "message",
                 "response": {
                     "text": response_text,
+                    "image": matched_image_b64,
                 },
             }
         ) + "\n"
