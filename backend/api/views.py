@@ -8,6 +8,7 @@ from core.embedding.generate_embeddings import get_text_embedding, get_image_emb
 from core.embedding.medical_models import get_medical_models
 
 from core.retrieval.query_vector_db import query_vector_db
+from core.retrieval.bm25_index import query_bm25
 
 from core.generation.generate_answer import generate_answer
 
@@ -113,6 +114,7 @@ def GetResponse(request):
 
     text_vectors = []
     image_vectors = []
+    bm25_results = []
 
     logger.info(
         f"[GetResponse] Entered. Query text length: {len(query_text) if query_text else 0}. Query image provided: {query_image is not None}"
@@ -128,6 +130,9 @@ def GetResponse(request):
         logger.info(
             f"[GetResponse] Text vectors retrieved: {len(text_vectors)} results."
         )
+        logger.info("[GetResponse] Running BM25 sparse retrieval...")
+        bm25_results = query_bm25(query_text, top_k=10)
+        logger.info(f"[GetResponse] BM25 results retrieved: {len(bm25_results)} results.")
 
     if query_image:
         logger.info("[GetResponse] Generating image embedding...")
@@ -142,9 +147,9 @@ def GetResponse(request):
             f"[GetResponse] Image vectors retrieved: {len(image_vectors)} results."
         )
 
-    # Find overlapping and distinct IDs using the rank_results function
+    # Combine dense text, dense image, and sparse BM25 results via RRF
     logger.info("[GetResponse] Ranking and combining multimodal search results...")
-    combined_scores = rank_results(text_vectors, image_vectors)
+    combined_scores = rank_results(text_vectors, image_vectors, bm25_results)
     logger.info(
         f"[GetResponse] Combined score matches (intersection if both are active): {list(combined_scores.keys())}"
     )
@@ -155,7 +160,7 @@ def GetResponse(request):
         reverse=True,
     )
 
-    top_cases = joint_results[:5]
+    top_cases = joint_results[:3]
 
     selected_cases = [
         ("retrieved_case", oid)
@@ -464,61 +469,45 @@ def get_image_name_and_text(id, json_data):
     return None, None
 
 
-def rank_results(text_vectors, image_vectors, k=60):
-
-    # Sort text vectors in descending order of score to assign ranks
-    sorted_text_vectors = sorted(
+def rank_results(text_vectors, image_vectors, bm25_results=None, k=60):
+    sorted_text = sorted(
         text_vectors,
         key=lambda r: r.score if hasattr(r, "score") else 0.0,
         reverse=True,
     )
     text_ranks = {}
-    for idx, r in enumerate(sorted_text_vectors):
+    for idx, r in enumerate(sorted_text):
         if r.metadata and "original_id" in r.metadata:
             oid = r.metadata["original_id"]
-            if oid not in text_ranks:
-                text_ranks[oid] = idx + 1  # 1-indexed rank
+            text_ranks.setdefault(oid, idx + 1)
 
-    # Sort image vectors in descending order of score to assign ranks
-    sorted_image_vectors = sorted(
+    sorted_image = sorted(
         image_vectors,
         key=lambda r: r.score if hasattr(r, "score") else 0.0,
         reverse=True,
     )
     image_ranks = {}
-    for idx, r in enumerate(sorted_image_vectors):
+    for idx, r in enumerate(sorted_image):
         if r.metadata and "original_id" in r.metadata:
             oid = r.metadata["original_id"]
-            if oid not in image_ranks:
-                image_ranks[oid] = idx + 1  # 1-indexed rank
+            image_ranks.setdefault(oid, idx + 1)
 
+    bm25_ranks = {}
+    if bm25_results:
+        for idx, (oid, _) in enumerate(bm25_results):
+            bm25_ranks[oid] = idx + 1
+
+    all_ids = set(text_ranks) | set(image_ranks) | set(bm25_ranks)
     combined_scores = {}
-
-    if text_ranks and image_ranks:
-        all_ids = set(text_ranks.keys()) | set(image_ranks.keys())
-
-        for oid in all_ids:
-            text_rrf = (
-                1.0 / (k + text_ranks[oid])
-                if oid in text_ranks
-                else 0
-            )
-
-            image_rrf = (
-                1.0 / (k + image_ranks[oid])
-                if oid in image_ranks
-                else 0
-            )
-
-            combined_scores[oid] = text_rrf + image_rrf
-
-    elif text_ranks:
-        for oid, rank in text_ranks.items():
-            combined_scores[oid] = 1.0 / (k + rank)
-
-    elif image_ranks:
-        for oid, rank in image_ranks.items():
-            combined_scores[oid] = 1.0 / (k + rank)
+    for oid in all_ids:
+        score = 0.0
+        if oid in text_ranks:
+            score += 1.0 / (k + text_ranks[oid])
+        if oid in image_ranks:
+            score += 1.0 / (k + image_ranks[oid])
+        if oid in bm25_ranks:
+            score += 1.0 / (k + bm25_ranks[oid])
+        combined_scores[oid] = score
 
     return combined_scores
  

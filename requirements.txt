@@ -88,6 +88,7 @@ python-dotenv==1.2.2
 pyyaml==6.0.3
 pyzmq==27.1.0
 rad-dino==0.1.1
+rank-bm25==0.2.2
 regex==2026.4.4
 requests==2.33.1
 rich==15.0.0

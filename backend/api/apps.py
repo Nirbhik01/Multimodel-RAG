@@ -11,4 +11,8 @@ class ApiConfig(AppConfig):
         # Preload Ollama local LLM model
         from core.generation.generate_answer import preload_model
         ollama_model = os.getenv('OLLAMA_MODEL', 'qwen2')
-        preload_model(ollama_model)
+        preload_model(ollama_model)
+
+        # Preload BM25 sparse retrieval index
+        from core.retrieval.bm25_index import get_bm25_index
+        get_bm25_index()
