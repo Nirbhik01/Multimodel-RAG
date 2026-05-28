@@ -76,7 +76,7 @@ Return output in this exact format with no extra text:
 
 ### Retrieval Analysis
 - Best Matching Case: [anonymized label, e.g., Reference Case 1]
-- Why It Matches:
+- Why It Matches (Similarity evidence):
 - Conflicting Evidence:
 - Confidence Level:
 
