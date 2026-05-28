@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.http import StreamingHttpResponse
 
 from upstash_vector import Index
 
@@ -15,36 +16,86 @@ from core.generation.generate_answer import generate_answer
 
 from datetime import datetime
 import os
-from dotenv import load_dotenv
-
-from pathlib import Path
-
+import re
 import json
 import base64
 import io
-from PIL import Image
-
 import logging
-from .mongodb_utils import db_client
+from pathlib import Path
+
+from dotenv import load_dotenv
+from PIL import Image
 from bson import ObjectId
+
+from .mongodb_utils import db_client
 
 logger = logging.getLogger(__name__)
 load_dotenv()
 
-# Create your views here.
-JSON_DATA = None
 ROOT_PATH = Path(__file__).parent.parent.parent
-try:
-    json_data_path = ROOT_PATH / "data" / "processed" / "embedding_input.json"
-    with open(json_data_path, "r") as file:
-        JSON_DATA = json.load(file)
-except Exception as e:
-    logger.error(f"Failed to load json data: {e}")
-    JSON_DATA = []
+JSON_DATA = []
 
+try:
+    with open(ROOT_PATH / "data" / "processed" / "embedding_input.json") as f:
+        JSON_DATA = json.load(f)
+except Exception as e:
+    logger.error(f"Failed to load embedding_input.json: {e}")
+
+
+SYSTEM_PROMPT = """
+You are an expert Radiologist AI Assistant.
+
+You are given:
+1. A patient's X-ray and clinical text.
+2. Multiple retrieved reference cases (anonymized as "Reference Case 1", "Reference Case 2", etc.).
+
+Each reference case includes retrieval metadata:
+- retrieval_sources: which search methods surfaced it (text_vector, image_vector, bm25) and their rank within that method.
+- cross_encoder_score: semantic similarity between the patient query and the case report (higher = more relevant).
+- rrf_rank: rank after fusing all retrieval signals via Reciprocal Rank Fusion.
+
+Use retrieval metadata as a confidence signal:
+- Cases found by multiple methods and with a high cross_encoder_score are strong candidates.
+- Cases found only by bm25 may share keywords but have lower semantic similarity.
+- cross_encoder_score is the most reliable single signal for text-based relevance.
+
+Your tasks:
+- Compare all retrieved cases against the patient presentation.
+- Identify the best matching reference case. Refer to it only by its anonymized label (e.g., "Reference Case 1") — never by any ID, name, or sensitive identifier.
+- Explain why it matches and note any conflicting evidence.
+- Produce a final Findings section and a final Impression section.
+- Assign a confidence level.
+- Provide clinical suggestions based on the retrieved cases.
+- Place slightly higher emphasis on the nature, location, and severity of airspace opacities or consolidations when comparing cases.
+
+Output constraints:
+- No meta-commentary, thought process, or internal guideline references in the response.
+- No real IDs, names, or patient data — only "Reference Case X" labels.
+
+Return output in this exact format with no extra text:
+
+### Retrieval Analysis
+- Best Matching Case: [anonymized label, e.g., Reference Case 1]
+- Why It Matches:
+- Conflicting Evidence:
+- Confidence Level:
+
+### Final Findings
+...
+
+### Final Impression
+...
+
+### Suggestions
+...
+"""
+
+
+# ---------------------------------------------------------------------------
+# Image utilities
+# ---------------------------------------------------------------------------
 
 def compress_image_bytes(image_bytes, max_size=(512, 512)):
-    """Compresses image to a max resolution to drastically reduce LLM inference time."""
     try:
         img = Image.open(io.BytesIO(image_bytes))
         if img.mode != "RGB":
@@ -58,374 +109,300 @@ def compress_image_bytes(image_bytes, max_size=(512, 512)):
         return image_bytes
 
 
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def GetResponse(request):
+def get_image_b64(image_name, root_path):
+    if not image_name:
+        return None
+    path = root_path / "data" / "images" / "images_normalized" / image_name
+    if not path.exists():
+        logger.error(f"Image not found: {path}")
+        return None
+    with open(path, "rb") as f:
+        return f"data:image/png;base64,{base64.b64encode(f.read()).decode('utf-8')}"
 
-    text_model, image_model, image_processor = get_medical_models()
 
-    UPSTASH_VECTOR_REST_URL = os.getenv("UPSTASH_DB_URL")
-    UPSTASH_VECTOR_READ_ONLY_REST_TOKEN = os.getenv("UPSTASH_READ_ONLY_TOKEN")
+def get_case_image_and_text(oid, json_data):
+    for item in json_data:
+        if item["id"] == oid:
+            return item["image"], item["text"]
+    return None, None
 
-    index = Index(
-        url=UPSTASH_VECTOR_REST_URL, token=UPSTASH_VECTOR_READ_ONLY_REST_TOKEN
-    )
 
-    root_path = ROOT_PATH
-    json_data = JSON_DATA
+# ---------------------------------------------------------------------------
+# Retrieval
+# ---------------------------------------------------------------------------
 
-    query_text = request.data.get("query")
-    query_image = request.FILES.get("image")
-    conversation_id = request.data.get("conversation_id")
-
-    if (
-        not conversation_id
-        or conversation_id == "null"
-        or conversation_id == "undefined"
-    ):
-        conversation_id = db_client.create_conversation(
-            title=query_text[:50] if query_text else "New Image Chat"
-        )
-
-    user_message = {
-        "role": "user",
-        "content": query_text,
-        "timestamp": datetime.utcnow().isoformat(),
-        "id": str(ObjectId()),
-    }
-
-    if query_image:
-        try:
-            # Read image content and convert to base64 for storage
-            query_image.seek(0)
-            image_content = query_image.read()
-            encoded_string = base64.b64encode(image_content).decode("utf-8")
-
-            content_type = getattr(query_image, "content_type", "image/png")
-            user_message["image"] = f"data:{content_type};base64,{encoded_string}"
-            user_message["has_image"] = True
-
-            # Reset file pointer for subsequent use in get_image_embedding
-            query_image.seek(0)
-        except Exception as e:
-            logger.error(f"Error processing user image: {e}")
-            user_message["has_image"] = False
-
-    db_client.add_message(conversation_id, user_message)
-
-    text_vectors = []
-    image_vectors = []
-    bm25_results = []
-
-    logger.info(
-        f"[GetResponse] Entered. Query text length: {len(query_text) if query_text else 0}. Query image provided: {query_image is not None}"
-    )
+def _run_retrieval(query_text, query_image, index, text_model, image_model, image_processor):
+    text_vectors, image_vectors, bm25_results = [], [], []
 
     if query_text and query_text.strip():
-        logger.info("[GetResponse] Generating text embedding...")
         text_embedding = get_text_embedding(text=query_text, model=text_model)
-        logger.info("[GetResponse] Querying vector DB for text modality...")
-        text_vectors = query_vector_db(
-            query_vector=text_embedding, index=index, vector_type="text"
-        )
-        logger.info(
-            f"[GetResponse] Text vectors retrieved: {len(text_vectors)} results."
-        )
-        logger.info("[GetResponse] Running BM25 sparse retrieval...")
+        text_vectors = query_vector_db(query_vector=text_embedding, index=index, vector_type="text")
         bm25_results = query_bm25(query_text, top_k=10)
-        logger.info(f"[GetResponse] BM25 results retrieved: {len(bm25_results)} results.")
+        logger.info(f"[Retrieval] text={len(text_vectors)}, bm25={len(bm25_results)}")
 
     if query_image:
-        logger.info("[GetResponse] Generating image embedding...")
-        image_embedding = get_image_embedding(
-            image=query_image, processor=image_processor, model=image_model
-        )
-        logger.info("[GetResponse] Querying vector DB for image modality...")
-        image_vectors = query_vector_db(
-            query_vector=image_embedding, index=index, vector_type="image"
-        )
-        logger.info(
-            f"[GetResponse] Image vectors retrieved: {len(image_vectors)} results."
-        )
+        image_embedding = get_image_embedding(image=query_image, processor=image_processor, model=image_model)
+        image_vectors = query_vector_db(query_vector=image_embedding, index=index, vector_type="image")
+        logger.info(f"[Retrieval] image={len(image_vectors)}")
 
-    # Combine dense text, dense image, and sparse BM25 results via RRF
-    logger.info("[GetResponse] Ranking and combining multimodal search results...")
-    combined_scores = rank_results(text_vectors, image_vectors, bm25_results)
-    logger.info(
-        f"[GetResponse] Combined score matches (intersection if both are active): {list(combined_scores.keys())}"
+    return text_vectors, image_vectors, bm25_results
+
+
+def _rank_results(text_vectors, image_vectors, bm25_results, k=60):
+    def build_ranks(vectors):
+        sorted_v = sorted(vectors, key=lambda r: getattr(r, "score", 0.0), reverse=True)
+        ranks = {}
+        for idx, r in enumerate(sorted_v):
+            if r.metadata and "original_id" in r.metadata:
+                ranks.setdefault(r.metadata["original_id"], idx + 1)
+        return ranks
+
+    text_ranks = build_ranks(text_vectors)
+    image_ranks = build_ranks(image_vectors)
+    bm25_ranks = {oid: idx + 1 for idx, (oid, _) in enumerate(bm25_results or [])}
+
+    all_ids = set(text_ranks) | set(image_ranks) | set(bm25_ranks)
+    combined = {
+        oid: sum(
+            1.0 / (k + ranks[oid])
+            for ranks in (text_ranks, image_ranks, bm25_ranks)
+            if oid in ranks
+        )
+        for oid in all_ids
+    }
+    return combined, text_ranks, image_ranks, bm25_ranks
+
+
+def _select_top_cases(query_text, text_vectors, image_vectors, bm25_results, json_data):
+    combined, text_ranks, image_ranks, bm25_ranks = _rank_results(
+        text_vectors, image_vectors, bm25_results
+    )
+    joint = sorted(combined.items(), key=lambda x: x[1], reverse=True)
+    rrf_pool = joint[:10]
+
+    reranked = (
+        ce_rerank(query_text, rrf_pool, json_data, top_k=3)
+        if (query_text and query_text.strip())
+        else rrf_pool[:3]
     )
 
-    joint_results = sorted(
-        combined_scores.items(),
-        key=lambda x: x[1],
-        reverse=True,
-    )
+    rrf_rank_lookup = {oid: i + 1 for i, (oid, _) in enumerate(joint)}
 
-    # Expand RRF pool then rerank with cross-encoder; fall back to RRF top-3 if no text
-    rrf_pool = joint_results[:10]
-    if query_text and query_text.strip():
-        logger.info("[GetResponse] Running cross-encoder reranking on RRF pool...")
-        top_cases = ce_rerank(query_text, rrf_pool, json_data, top_k=3)
-        logger.info(f"[GetResponse] Cross-encoder top cases: {[oid for oid, _ in top_cases]}")
-    else:
-        top_cases = rrf_pool[:3]
+    annotated = []
+    for oid, ce_score in reranked:
+        sources = []
+        if oid in text_ranks:
+            sources.append(f"text_vector (rank {text_ranks[oid]})")
+        if oid in image_ranks:
+            sources.append(f"image_vector (rank {image_ranks[oid]})")
+        if oid in bm25_ranks:
+            sources.append(f"bm25 (rank {bm25_ranks[oid]})")
 
-    selected_cases = [
-        ("retrieved_case", oid)
-        for oid, _ in top_cases
-    ]
+        annotated.append((oid, {
+            "ce_score": round(ce_score, 4) if ce_score is not None else None,
+            "rrf_rank": rrf_rank_lookup.get(oid),
+            "sources": sources,
+        }))
 
-    image_bytes_list = []
-    image = None
+    return annotated
 
-    has_patient_image = False
-    if query_image:
-        try:
-            logger.info("[GetResponse] Compressing patient query image...")
-            query_image.seek(0)
-            patient_img_bytes = compress_image_bytes(query_image.read())
-            image_bytes_list.append(patient_img_bytes)
-            query_image.seek(0)
-            has_patient_image = True
-            logger.info("[GetResponse] Patient query image successfully loaded.")
-        except Exception as e:
-            logger.error(
-                f"[GetResponse] Error reading patient's query image bytes: {e}"
-            )
 
-    reference_metadata = []
-    for case_type, oid in selected_cases:
-        image_name, text = get_image_name_and_text(id=oid, json_data=json_data)
-        logger.info(
-            f"[GetResponse] Reference case details: ID={oid}, Image={image_name}"
-        )
+# ---------------------------------------------------------------------------
+# Case loading & prompt building
+# ---------------------------------------------------------------------------
 
-        if image is None:
-            image = get_image(image_name=image_name, root_path=root_path)
-
-        has_img_in_case = False
+def _load_reference_cases(top_cases, json_data, root_path):
+    cases = []
+    for oid, meta in top_cases:
+        image_name, text = get_case_image_and_text(oid, json_data)
+        img_bytes = None
         if image_name:
-            data_path = root_path / "data" / "images" / "images_normalized" / image_name
-            if data_path.exists():
+            path = root_path / "data" / "images" / "images_normalized" / image_name
+            if path.exists():
                 try:
-                    logger.info(
-                        f"[GetResponse] Reading and compressing reference image {image_name}..."
-                    )
-                    with open(data_path, "rb") as img_f:
-                        compressed_bytes = compress_image_bytes(img_f.read())
-                        image_bytes_list.append(compressed_bytes)
-                        has_img_in_case = True
-                        logger.info(
-                            f"[GetResponse] Reference image {image_name} successfully compressed."
-                        )
+                    with open(path, "rb") as f:
+                        img_bytes = compress_image_bytes(f.read())
                 except Exception as e:
-                    logger.error(
-                        f"[GetResponse] Error reading reference image {image_name}: {e}"
-                    )
-            else:
-                logger.warn(
-                    f"[GetResponse] Reference image path does not exist: {data_path}"
-                )
+                    logger.error(f"Error reading reference image {image_name}: {e}")
 
-        reference_metadata.append(
-            {"type": case_type, "id": oid, "text": text, "has_image": has_img_in_case}
-        )
+        cases.append({
+            "id": oid,
+            "image_name": image_name,
+            "text": text,
+            "img_bytes": img_bytes,
+            "has_image": img_bytes is not None,
+            "sources": meta.get("sources", []),
+            "ce_score": meta.get("ce_score"),
+            "rrf_rank": meta.get("rrf_rank"),
+        })
+    return cases
 
-    from django.http import StreamingHttpResponse
 
+def _load_patient_image(query_image):
+    if not query_image:
+        return None, False
+    try:
+        query_image.seek(0)
+        img_bytes = compress_image_bytes(query_image.read())
+        query_image.seek(0)
+        return img_bytes, True
+    except Exception as e:
+        logger.error(f"Error loading patient image: {e}")
+        return None, False
+
+
+def _build_candidate_cases(reference_cases):
+    candidates = []
+    for idx, case in enumerate(reference_cases):
+        entry = {
+            "case_label": f"Reference Case {idx + 1}",
+            "report": case["text"],
+            "retrieval_sources": case["sources"],
+            "rrf_rank": case["rrf_rank"],
+        }
+        if case["ce_score"] is not None:
+            entry["cross_encoder_score"] = case["ce_score"]
+        candidates.append(entry)
+    return candidates
+
+
+def _build_prompt_text(query_text, candidate_cases):
+    return f"""
+<current_patient>
+<query>
+{query_text}
+</query>
+</current_patient>
+
+<retrieved_reference_cases>
+{json.dumps(candidate_cases, indent=2)}
+</retrieved_reference_cases>
+"""
+
+
+def _extract_matched_image_b64(response_text, reference_cases, json_data, root_path):
+    try:
+        for line in response_text.splitlines():
+            if "Best Matching Case" in line:
+                m = re.search(r"(\d+)", line)
+                if m:
+                    n = int(m.group(1))
+                    if 1 <= n <= len(reference_cases):
+                        return get_image_b64(reference_cases[n - 1]["image_name"], root_path)
+    except Exception as e:
+        logger.error(f"Error parsing matched case: {e}")
+
+    if reference_cases:
+        return get_image_b64(reference_cases[0]["image_name"], root_path)
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Streaming
+# ---------------------------------------------------------------------------
+
+def _make_stream_fn(conversation_id, query_text, reference_cases, all_images, json_data, root_path):
     def stream_responses():
-        logger.info("[stream_responses] Initiating SINGLE multimodal response stream...")
+        yield json.dumps({"status": "init", "conversation_id": conversation_id}) + "\n"
 
-        yield json.dumps(
-            {
-                "status": "init",
-                "conversation_id": conversation_id,
-            }
-        ) + "\n"
-
-        candidate_cases = []
-
-        for idx, case in enumerate(reference_metadata):
-
-            case_id = case["id"]
-            case_type = case["type"]
-            case_text = case["text"]
-
-            ref_image_name, _ = get_image_name_and_text(
-                id=case_id,
-                json_data=json_data,
-            )
-
-            ref_image_b64 = get_image(
-                image_name=ref_image_name,
-                root_path=root_path,
-            )
-
-            candidate_cases.append(
-                {
-                    "case_label": f"Reference Case {idx + 1}",
-                    "type": case_type,
-                    "report": case_text,
-                }
-            )
-
-        prompt_text = f"""
-        <current_patient>
-        <query>
-        {query_text}
-        </query>
-        </current_patient>
-
-        <retrieved_reference_cases>
-
-        {json.dumps(candidate_cases, indent=2)}
-
-        </retrieved_reference_cases>
-        """
-
-        system_prompt = """
-        You are an expert Radiologist AI Assistant.
-
-        You are given:
-        1. A patient's X-ray and clinical text
-        2. Multiple retrieved reference cases (anonymized under labels like "Reference Case 1", "Reference Case 2", etc.)
-
-        Your tasks:
-        - Compare all retrieved cases.
-        - Determine which reference case best matches the patient. Refer to this matching case ONLY by its anonymized label (e.g., "Reference Case 1") and never by any database ID, patient name, or sensitive identifier.
-        - Explain why it matches.
-        - Mention conflicting evidence if present.
-        - Produce a final radiology Findings section.
-        - Produce a final Impression section.
-        - Assign a confidence level.
-        - Clinical condition focus instruction (Internal guideline for comparison): Place a slightly higher emphasis (a tad more focus, prioritizing it slightly above other factors like technical parameters or demographic details) on the specific clinical conditions (nature, location, and severity of airspace opacities or consolidations) that the patient and reference cases exhibit.
-        - Provide Suggestions for patient based on the retrieved cases.
-
-        Strict constraint on response output:
-        - Do NOT include any meta-commentary, feedback, explanations of your thought process, or any mention of percentage targets/internal focus guidelines (such as "21-22%" or "clinical condition focus") in the final response.
-        - Strictly do not mention any real database IDs, names, or patient info. Refer to retrieved cases only as "Reference Case X".
-        - Do not output any text before the opening '---' or after the closing '---'.
-
-        Return output in this exact format, with no extra text:
-
-        ### Retrieval Analysis
-        - Best Matching Case: [Provide only the matching anonymized label, e.g., Reference Case 1]
-        - Why It Matches:
-        - Conflicting Evidence:
-        - Confidence Level: 
-
-        ### Final Findings
-        ...
-
-        ### Final Impression
-        ...
-  
-        """
-
-        all_images = []
-
-        if has_patient_image:
-            all_images.append(image_bytes_list[0])
-
-        for idx, case in enumerate(reference_metadata):
-
-            if case["has_image"]:
-
-                img_index = (
-                    idx + 1
-                    if has_patient_image
-                    else idx
-                )
-
-                if img_index < len(image_bytes_list):
-                    all_images.append(
-                        image_bytes_list[img_index]
-                    )
-
+        candidate_cases = _build_candidate_cases(reference_cases)
+        prompt_text = _build_prompt_text(query_text, candidate_cases)
         ollama_model = os.getenv("OLLAMA_MODEL", "qwen2")
 
         try:
-
-            logger.info(
-                f"[stream_responses] Running SINGLE LLM inference with {len(candidate_cases)} retrieved cases."
-            )
-
             response_text = generate_answer(
                 model_name=ollama_model,
-                system_prompt=system_prompt,
+                system_prompt=SYSTEM_PROMPT,
                 prompt_text=prompt_text,
                 images=all_images,
             )
-
         except Exception as e:
-
-            logger.error(
-                f"[stream_responses] Error during single LLM inference: {e}"
-            )
-
+            logger.error(f"LLM inference error: {e}")
             response_text = f"An error occurred: {str(e)}"
 
-        # Extract the best matching case image for frontend display
-        matched_image_b64 = None
-        try:
-            import re
-            for line in response_text.splitlines():
-                if "Best Matching Case" in line:
-                    digit_match = re.search(r"(\d+)", line)
-                    if digit_match:
-                        case_num = int(digit_match.group(1))
-                        if 1 <= case_num <= len(reference_metadata):
-                            matched_case = reference_metadata[case_num - 1]
-                            matched_case_id = matched_case["id"]
-                            ref_image_name, _ = get_image_name_and_text(id=matched_case_id, json_data=json_data)
-                            matched_image_b64 = get_image(image_name=ref_image_name, root_path=root_path)
-                            logger.info(f"[stream_responses] Extracted matched image for Reference Case {case_num}")
-                            break
-        except Exception as parse_err:
-            logger.error(f"[stream_responses] Error parsing matched case image: {parse_err}")
+        matched_image_b64 = _extract_matched_image_b64(response_text, reference_cases, json_data, root_path)
 
-        # Fallback to the first reference case image if no specific case was successfully parsed
-        if not matched_image_b64 and reference_metadata:
-            try:
-                first_case_id = reference_metadata[0]["id"]
-                ref_image_name, _ = get_image_name_and_text(id=first_case_id, json_data=json_data)
-                matched_image_b64 = get_image(image_name=ref_image_name, root_path=root_path)
-                logger.info("[stream_responses] Fallback: using first reference case image.")
-            except Exception as fallback_err:
-                logger.error(f"[stream_responses] Fallback error loading image: {fallback_err}")
-
-        assistant_message = {
+        db_client.add_message(conversation_id, {
             "role": "assistant",
             "content": response_text,
             "similarityImage": matched_image_b64,
             "timestamp": datetime.utcnow().isoformat(),
             "id": str(ObjectId()),
-        }
+        })
 
-        db_client.add_message(
-            conversation_id,
-            assistant_message,
+        yield json.dumps({
+            "status": "message",
+            "response": {"text": response_text, "image": matched_image_b64},
+        }) + "\n"
+
+    return stream_responses
+
+
+# ---------------------------------------------------------------------------
+# Views
+# ---------------------------------------------------------------------------
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def GetResponse(request):
+    text_model, image_model, image_processor = get_medical_models()
+    index = Index(url=os.getenv("UPSTASH_DB_URL"), token=os.getenv("UPSTASH_READ_ONLY_TOKEN"))
+
+    query_text = request.data.get("query")
+    query_image = request.FILES.get("image")
+    conversation_id = request.data.get("conversation_id")
+
+    if not conversation_id or conversation_id in ("null", "undefined"):
+        conversation_id = db_client.create_conversation(
+            title=query_text[:50] if query_text else "New Image Chat"
         )
 
-        yield json.dumps(
-            {
-                "status": "message",
-                "response": {
-                    "text": response_text,
-                    "image": matched_image_b64,
-                },
-            }
-        ) + "\n"
+    _save_user_message(conversation_id, query_text, query_image)
 
-        logger.info("[stream_responses] Single response completed.")
-    return StreamingHttpResponse(stream_responses(), content_type="application/json")
+    text_vectors, image_vectors, bm25_results = _run_retrieval(
+        query_text, query_image, index, text_model, image_model, image_processor
+    )
+    top_cases = _select_top_cases(query_text, text_vectors, image_vectors, bm25_results, JSON_DATA)
+
+    patient_img_bytes, has_patient_image = _load_patient_image(query_image)
+    reference_cases = _load_reference_cases(top_cases, JSON_DATA, ROOT_PATH)
+
+    all_images = []
+    if has_patient_image:
+        all_images.append(patient_img_bytes)
+    all_images.extend(c["img_bytes"] for c in reference_cases if c["img_bytes"] is not None)
+
+    stream_fn = _make_stream_fn(
+        conversation_id, query_text, reference_cases, all_images, JSON_DATA, ROOT_PATH
+    )
+    return StreamingHttpResponse(stream_fn(), content_type="application/json")
+
+
+def _save_user_message(conversation_id, query_text, query_image):
+    message = {
+        "role": "user",
+        "content": query_text,
+        "timestamp": datetime.utcnow().isoformat(),
+        "id": str(ObjectId()),
+    }
+    if query_image:
+        try:
+            query_image.seek(0)
+            content = query_image.read()
+            content_type = getattr(query_image, "content_type", "image/png")
+            message["image"] = f"data:{content_type};base64,{base64.b64encode(content).decode('utf-8')}"
+            message["has_image"] = True
+            query_image.seek(0)
+        except Exception as e:
+            logger.error(f"Error encoding user image: {e}")
+            message["has_image"] = False
+    db_client.add_message(conversation_id, message)
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def ListConversations(request):
-    conversations = db_client.get_conversations()
-    return Response(conversations)
+    return Response(db_client.get_conversations())
 
 
 @api_view(["GET"])
@@ -452,70 +429,3 @@ def CreateConversation(request):
     title = request.data.get("title", "New Chat")
     conversation_id = db_client.create_conversation(title=title)
     return Response({"conversation_id": conversation_id})
-
-
-def get_image(image_name, root_path):
-    if not image_name:
-        logger.error("No image name provided to get_image")
-        return None
-
-    data_path = root_path / "data" / "images" / "images_normalized" / image_name
-
-    if not data_path.exists():
-        logger.error(f"Image not found at path: {data_path}")
-        return None
-
-    with open(data_path, "rb") as img:
-        encoded_string = base64.b64encode(img.read()).decode("utf-8")
-        return f"data:image/png;base64,{encoded_string}"
-
-
-def get_image_name_and_text(id, json_data):
-    for item in json_data:
-        if item["id"] == id:
-            return item["image"], item["text"]
-    return None, None
-
-
-def rank_results(text_vectors, image_vectors, bm25_results=None, k=60):
-    sorted_text = sorted(
-        text_vectors,
-        key=lambda r: r.score if hasattr(r, "score") else 0.0,
-        reverse=True,
-    )
-    text_ranks = {}
-    for idx, r in enumerate(sorted_text):
-        if r.metadata and "original_id" in r.metadata:
-            oid = r.metadata["original_id"]
-            text_ranks.setdefault(oid, idx + 1)
-
-    sorted_image = sorted(
-        image_vectors,
-        key=lambda r: r.score if hasattr(r, "score") else 0.0,
-        reverse=True,
-    )
-    image_ranks = {}
-    for idx, r in enumerate(sorted_image):
-        if r.metadata and "original_id" in r.metadata:
-            oid = r.metadata["original_id"]
-            image_ranks.setdefault(oid, idx + 1)
-
-    bm25_ranks = {}
-    if bm25_results:
-        for idx, (oid, _) in enumerate(bm25_results):
-            bm25_ranks[oid] = idx + 1
-
-    all_ids = set(text_ranks) | set(image_ranks) | set(bm25_ranks)
-    combined_scores = {}
-    for oid in all_ids:
-        score = 0.0
-        if oid in text_ranks:
-            score += 1.0 / (k + text_ranks[oid])
-        if oid in image_ranks:
-            score += 1.0 / (k + image_ranks[oid])
-        if oid in bm25_ranks:
-            score += 1.0 / (k + bm25_ranks[oid])
-        combined_scores[oid] = score
-
-    return combined_scores
- 
