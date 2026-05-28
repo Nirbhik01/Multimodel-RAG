@@ -15,4 +15,8 @@ class ApiConfig(AppConfig):
 
         # Preload BM25 sparse retrieval index
         from core.retrieval.bm25_index import get_bm25_index
-        get_bm25_index()
+        get_bm25_index()
+
+        # Preload cross-encoder reranker
+        from core.retrieval.cross_encoder_reranker import get_cross_encoder
+        get_cross_encoder()

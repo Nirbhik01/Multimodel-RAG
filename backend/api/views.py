@@ -9,6 +9,7 @@ from core.embedding.medical_models import get_medical_models
 
 from core.retrieval.query_vector_db import query_vector_db
 from core.retrieval.bm25_index import query_bm25
+from core.retrieval.cross_encoder_reranker import rerank as ce_rerank
 
 from core.generation.generate_answer import generate_answer
 
@@ -160,7 +161,14 @@ def GetResponse(request):
         reverse=True,
     )
 
-    top_cases = joint_results[:3]
+    # Expand RRF pool then rerank with cross-encoder; fall back to RRF top-3 if no text
+    rrf_pool = joint_results[:10]
+    if query_text and query_text.strip():
+        logger.info("[GetResponse] Running cross-encoder reranking on RRF pool...")
+        top_cases = ce_rerank(query_text, rrf_pool, json_data, top_k=3)
+        logger.info(f"[GetResponse] Cross-encoder top cases: {[oid for oid, _ in top_cases]}")
+    else:
+        top_cases = rrf_pool[:3]
 
     selected_cases = [
         ("retrieved_case", oid)
