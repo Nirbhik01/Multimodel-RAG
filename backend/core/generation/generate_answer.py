@@ -5,15 +5,23 @@ import shutil
 
 logger = logging.getLogger(__name__)
 
+_gpu_available_cache = None
+
 def is_gpu_available():
     """
     Checks if a compatible GPU (NVIDIA CUDA) is available on the system.
+    Caches result to avoid redundant check latency and log spam.
     """
+    global _gpu_available_cache
+    if _gpu_available_cache is not None:
+        return _gpu_available_cache
+
     # 1. Try importing torch and checking CUDA availability
     try:
         import torch
         if torch.cuda.is_available():
             logger.info("[GPU Detector] PyTorch reports CUDA is available.")
+            _gpu_available_cache = True
             return True
     except ImportError:
         pass
@@ -24,11 +32,13 @@ def is_gpu_available():
             res = subprocess.run(["nvidia-smi"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=2)
             if res.returncode == 0 and "GPU" in res.stdout:
                 logger.info("[GPU Detector] nvidia-smi successfully detected an active GPU.")
+                _gpu_available_cache = True
                 return True
         except Exception:
             pass
 
     logger.info("[GPU Detector] No active GPU detected. Falling back to CPU configuration.")
+    _gpu_available_cache = False
     return False
 
 def preload_model(model_name):

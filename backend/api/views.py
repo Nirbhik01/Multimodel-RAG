@@ -13,6 +13,7 @@ from core.retrieval.bm25_index import query_bm25
 from core.retrieval.cross_encoder_reranker import rerank as ce_rerank
 
 from core.generation.generate_answer import generate_answer
+from core.generation.hyde import generate_hypothetical_report
 
 from datetime import datetime
 import os
@@ -61,24 +62,39 @@ Use retrieval metadata as a confidence signal:
 
 Your tasks:
 - Compare all retrieved cases against the patient presentation.
+- If you're refering to user's case mention it as "patient's case" and retrieved cases as "reference case".
 - Identify the best matching reference case. Refer to it only by its anonymized label (e.g., "Reference Case 1") — never by any ID, name, or sensitive identifier.
 - Explain why it matches and note any conflicting evidence.
 - Produce a final Findings section and a final Impression section.
 - Assign a confidence level.
 - Provide clinical suggestions based on the retrieved cases.
-- Place slightly higher emphasis on the nature, location, and severity of airspace opacities or consolidations when comparing cases.
+- When comparing cases, prioritize the nature and severity of airspace opacities 
+  or consolidations above all other features. Location is a secondary signal — 
+  use it to break ties or add supporting context, but do not let it drive case 
+  selection if nature and severity differ meaningfully between candidates.
+- Prioritize semantic text similarity above the other metrics (retrieval_sources, cross_encoder_score, rrf_rank) among the retrieved cases.
 
 Output constraints:
 - No meta-commentary, thought process, or internal guideline references in the response.
 - No real IDs, names, or patient data — only "Reference Case X" labels.
+- No mention of scores presented with the cases.
 
-Return output in this exact format with no extra text:
+Return output in this exact format. Do NOT keep the angle brackets or literal placeholder descriptions; replace them with your actual selection and analysis.
+
+### Best Matching Case: [Reference Case X]
+
+### Retrieved Case:
+- Report: [copy the full verbatim report text of the best matching case from retrieved_reference_cases] 
 
 ### Retrieval Analysis
-- Best Matching Case: [anonymized label, e.g., Reference Case 1]
-- Why It Matches (Similarity evidence):
-- Conflicting Evidence:
-- Confidence Level:
+
+- Why It Matches : 
+    - [Point-by-point similar findings, severity, or location evidence]
+    
+- Conflicting Evidence: 
+    - [Point-by-point conflicting findings or clinical parameters]
+
+- Confidence Level: [very_low / low / medium / high / very_high]
 
 ### Final Findings
 ...
@@ -179,12 +195,15 @@ def _select_top_cases(query_text, text_vectors, image_vectors, bm25_results, jso
     )
     joint = sorted(combined.items(), key=lambda x: x[1], reverse=True)
     rrf_pool = joint[:10]
+    logger.info(f"[Retrieval] Fused RRF pool size: {len(joint)}. Top 10 RRF candidates: {[oid for oid, _ in rrf_pool]}")
 
-    reranked = (
-        ce_rerank(query_text, rrf_pool, json_data, top_k=3)
-        if (query_text and query_text.strip())
-        else rrf_pool[:3]
-    )
+    if (query_text and query_text.strip()):
+        logger.info("[Retrieval] Re-ranking top 10 RRF candidates using Cross-Encoder...")
+        reranked = ce_rerank(query_text, rrf_pool, json_data, top_k=3)
+        logger.info(f"[Retrieval] Top 3 re-ranked cases: {[(oid, round(score, 4)) for oid, score in reranked]}")
+    else:
+        logger.info("[Retrieval] No query text provided. Using top 3 RRF candidates directly.")
+        reranked = rrf_pool[:3]
 
     rrf_rank_lookup = {oid: i + 1 for i, (oid, _) in enumerate(joint)}
 
@@ -215,6 +234,7 @@ def _load_reference_cases(top_cases, json_data, root_path):
     cases = []
     for oid, meta in top_cases:
         image_name, text = get_case_image_and_text(oid, json_data)
+        logger.info(f"[GetResponse] Selected Reference Case: ID={oid}, Image={image_name}")
         img_bytes = None
         if image_name:
             path = root_path / "data" / "images" / "images_normalized" / image_name
@@ -266,18 +286,23 @@ def _build_candidate_cases(reference_cases):
     return candidates
 
 
-def _build_prompt_text(query_text, candidate_cases):
+def _build_prompt_text(query_text, candidate_cases, hyde_report=None):
+    hyde_section = (
+        f"\n<preliminary_analysis>\n{hyde_report}\n</preliminary_analysis>"
+        if hyde_report else ""
+    )
     return f"""
-<current_patient>
-<query>
-{query_text}
-</query>
-</current_patient>
+        <current_patient>
+            <query>
+                {query_text}
+            </query>
+            {hyde_section}
+        </current_patient>
 
-<retrieved_reference_cases>
-{json.dumps(candidate_cases, indent=2)}
-</retrieved_reference_cases>
-"""
+        <retrieved_reference_cases>
+            {json.dumps(candidate_cases, indent=2)}
+        </retrieved_reference_cases>
+    """
 
 
 def _extract_matched_image_b64(response_text, reference_cases, json_data, root_path):
@@ -301,12 +326,13 @@ def _extract_matched_image_b64(response_text, reference_cases, json_data, root_p
 # Streaming
 # ---------------------------------------------------------------------------
 
-def _make_stream_fn(conversation_id, query_text, reference_cases, all_images, json_data, root_path):
+def _make_stream_fn(conversation_id, query_text, reference_cases, all_images, json_data, root_path, hyde_report=None):
     def stream_responses():
-        yield json.dumps({"status": "init", "conversation_id": conversation_id}) + "\n"
+        logger.info(f"[GetResponse] Initiating streaming response for conversation_id={conversation_id}")
+        yield json.dumps({"status": "init", "conversation_id": conversation_id, "hyde_report": hyde_report}) + "\n"
 
         candidate_cases = _build_candidate_cases(reference_cases)
-        prompt_text = _build_prompt_text(query_text, candidate_cases)
+        prompt_text = _build_prompt_text(query_text, candidate_cases, hyde_report)
         ollama_model = os.getenv("OLLAMA_MODEL", "qwen2")
 
         try:
@@ -334,6 +360,7 @@ def _make_stream_fn(conversation_id, query_text, reference_cases, all_images, js
             "status": "message",
             "response": {"text": response_text, "image": matched_image_b64},
         }) + "\n"
+        logger.info(f"[GetResponse] Streaming complete and assistant message saved for conversation_id={conversation_id}")
 
     return stream_responses
 
@@ -345,26 +372,46 @@ def _make_stream_fn(conversation_id, query_text, reference_cases, all_images, js
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def GetResponse(request):
-    text_model, image_model, image_processor = get_medical_models()
-    index = Index(url=os.getenv("UPSTASH_DB_URL"), token=os.getenv("UPSTASH_READ_ONLY_TOKEN"))
-
     query_text = request.data.get("query")
     query_image = request.FILES.get("image")
     conversation_id = request.data.get("conversation_id")
+
+    logger.info(f"[GetResponse] Received request. conversation_id={conversation_id}, query_text_len={len(query_text) if query_text else 0}, has_image={query_image is not None}")
+
+    text_model, image_model, image_processor = get_medical_models()
+    index = Index(url=os.getenv("UPSTASH_DB_URL"), token=os.getenv("UPSTASH_READ_ONLY_TOKEN"))
 
     if not conversation_id or conversation_id in ("null", "undefined"):
         conversation_id = db_client.create_conversation(
             title=query_text[:50] if query_text else "New Image Chat"
         )
+        logger.info(f"[GetResponse] Created new conversation with ID={conversation_id}")
 
     _save_user_message(conversation_id, query_text, query_image)
 
-    text_vectors, image_vectors, bm25_results = _run_retrieval(
-        query_text, query_image, index, text_model, image_model, image_processor
-    )
-    top_cases = _select_top_cases(query_text, text_vectors, image_vectors, bm25_results, JSON_DATA)
-
+    # Load patient image early so HyDE can use it for visual analysis
     patient_img_bytes, has_patient_image = _load_patient_image(query_image)
+
+    # HyDE: generate a hypothetical radiology report from the image + query,
+    # then use that richer clinical text for embedding and BM25 retrieval
+    ollama_model = os.getenv("OLLAMA_MODEL", "qwen2")
+    logger.info(f"[GetResponse] Applying HyDE transformation using model {ollama_model}...")
+    hyde_report = generate_hypothetical_report(
+        query_text or "",
+        patient_img_bytes if has_patient_image else None,
+        ollama_model,
+    )
+    if hyde_report:
+        logger.info(f"[GetResponse] HyDE report successfully generated. Length: {len(hyde_report)} chars.")
+    else:
+        logger.info("[GetResponse] HyDE report generation returned empty. Falling back to raw query_text.")
+    retrieval_text = hyde_report if hyde_report else query_text
+
+    text_vectors, image_vectors, bm25_results = _run_retrieval(
+        retrieval_text, query_image, index, text_model, image_model, image_processor
+    )
+    top_cases = _select_top_cases(retrieval_text, text_vectors, image_vectors, bm25_results, JSON_DATA)
+
     reference_cases = _load_reference_cases(top_cases, JSON_DATA, ROOT_PATH)
 
     all_images = []
@@ -373,7 +420,8 @@ def GetResponse(request):
     all_images.extend(c["img_bytes"] for c in reference_cases if c["img_bytes"] is not None)
 
     stream_fn = _make_stream_fn(
-        conversation_id, query_text, reference_cases, all_images, JSON_DATA, ROOT_PATH
+        conversation_id, query_text, reference_cases, all_images, JSON_DATA, ROOT_PATH,
+        hyde_report=hyde_report,
     )
     return StreamingHttpResponse(stream_fn(), content_type="application/json")
 
