@@ -8,27 +8,45 @@ AI-powered medical diagnostic assistant that combines chest X-ray images and cli
 root/
 ├── backend/
 │   ├── api/
-│   │   ├── apps.py               # Django app config — loads models at startup
-│   │   ├── views.py              # Main RAG endpoint + RRF ranking
+│   │   ├── apps.py               # Django app config — loads all models at startup
+│   │   ├── views.py              # Main RAG endpoint, RRF ranking, streaming
+│   │   ├── urls.py               # API URL routing
 │   │   └── mongodb_utils.py      # Conversation history helpers
+│   ├── backend/
+│   │   ├── settings.py           # Django settings
+│   │   ├── urls.py               # Root URL config
+│   │   ├── wsgi.py
+│   │   └── asgi.py
 │   ├── core/
 │   │   ├── embedding/
-│   │   │   ├── medical_models.py # PubMedBERT + Rad-DINO singletons
+│   │   │   ├── medical_models.py       # PubMedBERT + Rad-DINO singletons
 │   │   │   └── generate_embeddings.py
 │   │   ├── retrieval/
-│   │   │   ├── query_vector_db.py
-│   │   │   ├── bm25_index.py
-│   │   │   └── cross_encoder_reranker.py
+│   │   │   ├── query_vector_db.py      # Upstash vector search
+│   │   │   ├── bm25_index.py           # BM25 sparse retrieval
+│   │   │   └── cross_encoder_reranker.py # MedCPT-Cross-Encoder reranking
 │   │   └── generation/
-│   │       └── generate_answer.py
+│   │       ├── generate_answer.py      # Ollama LLM inference
+│   │       └── hyde.py                 # HyDE query transformation
+│   ├── manage.py
 │   └── .env.example
 ├── data/
 │   ├── images/
-│   │   └── images_normalized/    # 1000+ PNG chest X-ray files
+│   │   └── images_normalized/    # PNG chest X-ray files
 │   ├── processed/                # embedding_input.json, embedding_results.json
 │   ├── raw/                      # indiana_projections.csv, indiana_reports.csv
 │   └── test_images/
 ├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── Sidebar.jsx
+│   │   ├── pages/
+│   │   │   └── HomePage.jsx
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── public/
+│   ├── index.html
+│   └── .env.example
 ├── ingestion/
 │   ├── generate_medical_embeddings.py
 │   ├── upload_vectors.py
@@ -40,6 +58,7 @@ root/
 │   ├── preprocess_text.ipynb
 │   └── knowledge_base_to_vector.ipynb
 ├── requirements.txt
+├── ProblemsFaced.md
 └── README.md
 ```
 
