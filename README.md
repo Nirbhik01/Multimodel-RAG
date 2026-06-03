@@ -51,12 +51,13 @@ root/
 - Both models load as singletons at Django startup (`api/apps.py`) to avoid slow first-request latency
 
 ### Retrieval Pipeline
-1. Generate text embedding (PubMedBERT) and image embedding (Rad-DINO) for the query
-2. Query Upstash Vector DB with `type == "text"` and `type == "image"` filters separately (top-10 each)
-3. Run BM25 sparse retrieval on query text
-4. Combine all three result sets via Reciprocal Rank Fusion (RRF, k=60)
-5. Cross-encoder reranking of RRF top-10 pool by scoring (query, cleaned_text) pairs
-6. Select top-3 cases for LLM context (falls back to RRF top-3 on image-only queries)
+1. **HyDE**: generate a synthetic radiology report from the query text + image via Ollama (`core/generation/hyde.py`) to improve embedding alignment with indexed case text
+2. Generate text embedding (PubMedBERT on HyDE-enhanced query) and image embedding (Rad-DINO) for the query
+3. Query Upstash Vector DB with `type == "text"` and `type == "image"` filters separately (top-10 each)
+4. Run BM25 sparse retrieval on query text
+5. Combine all three result sets via Reciprocal Rank Fusion (RRF, k=60)
+6. **Cross-encoder reranking**: RRF top-10 pool scored by (query, cleaned_text) pairs using MedCPT-Cross-Encoder — a biomedical cross-encoder trained on PubMed data
+7. Select top-3 cases for LLM context (falls back to RRF top-3 on image-only queries)
 
 ### LLM Generation (Ollama)
 - Local LLM via Ollama, model configurable via `OLLAMA_MODEL` env var (default: `qwen2`)
@@ -106,7 +107,7 @@ ollama pull qwen2
 | `MONGO_DB_CONNECTION_STRING` | MongoDB connection string |
 | `FRONTEND_URL` | Frontend origin for CORS (e.g., `http://localhost:5173`) |
 | `OLLAMA_MODEL` | LLM model name (default: `qwen2`) |
-| `CROSS_ENCODER_MODEL` | HuggingFace cross-encoder model (default: `cross-encoder/ms-marco-MiniLM-L-6-v2`) |
+| `CROSS_ENCODER_MODEL` | HuggingFace cross-encoder model (default: `ncbi/MedCPT-Cross-Encoder`) |
 
 **Frontend** (`frontend/.env`):
 
@@ -174,6 +175,10 @@ Run in order from `utils/`. Each notebook produces outputs consumed by the next.
 | "Ollama model not found" | Run `ollama pull qwen2` and ensure `ollama serve` is running |
 | GPU not used | Run `python -c "import torch; print(torch.cuda.is_available())"` and verify `nvidia-smi` is in PATH |
 | CORS errors | `FRONTEND_URL` in backend `.env` must match the exact origin (including port) of the frontend |
+
+## Development Notes
+
+Key architectural decisions made during development — including problems encountered and how they were resolved (weighted average vs. separate embeddings, RRF vs. weighted score fusion, general vs. medical cross-encoder, Gemini vs. Ollama) — are documented in [`ProblemsFaced.md`](./ProblemsFaced.md).
 
 ## Data Source
 
