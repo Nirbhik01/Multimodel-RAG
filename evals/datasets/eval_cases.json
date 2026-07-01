@@ -1,0 +1,842 @@
+[
+  {
+    "id": 887,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Indication: symptoms x7 days. | Findings: The cardiomediastinal silhouette and pulmonary vasculature are within normal limits in size. The lungs are clear of focal airspace disease, pneumothorax, or pleural effusion. There are no acute bony findings. | Impression: No acute cardiopulmonary findings.",
+    "image": "887_IM-2400-1001.dcm.png"
+  },
+  {
+    "id": 288,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Findings: Heart size appears within normal limits. Pulmonary vasculature appears within normal limits. Radiodensity overlying the middle cardiac silhouette, representing a hiatal hernia. No focal consolidation, pleural effusion or pneumothorax. No acute bony abnormality. | Impression: No acute cardiopulmonary abnormality. | Conditions: Hernia, Hiatal, Density thorax",
+    "image": "288_IM-1284-1001.dcm.png"
+  },
+  {
+    "id": 2159,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Indication: onset of substernal chest pain. for one year. | Findings: The lungs and pleural spaces show no acute abnormality. Heart size and pulmonary vascularity within normal limits. | Impression: No acute pulmonary abnormality.",
+    "image": "2159_IM-0776-1001.dcm.png"
+  },
+  {
+    "id": 1901,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Indication: Chest pain. | Findings: The examination consists of frontal and lateral radiographs of the chest. There has been interval CABG. Surgical clips are again seen in the epigastric region. The cardiomediastinal contours are within normal limits. Pulmonary vascularity is within normal limits. No focal consolidation, pleural effusion, or pneumothorax identified. The visualized osseous structures are unremarkable. | Impression: No evidence of acute cardiopulmonary process. Interval CABG. | Conditions: Surgical Instruments abdomen",
+    "image": "1901_IM-0585-1001.dcm.png"
+  },
+  {
+    "id": 1757,
+    "cluster": 0,
+    "normal": false,
+    "cleaned_text": "Indication: year-old male with chest pain and shortness of breath. | Findings: The heart size is normal. The mediastinal contour is within normal limits. The lungs are free of any focal infiltrates. There are no nodules or masses. No visible pneumothorax. No visible pleural fluid. The are grossly normal. There is no visible free intraperitoneal air under the diaphragm. | Impression: No acute radiographic cardiopulmonary process.",
+    "image": "1757_IM-0495-1001.dcm.png"
+  },
+  {
+    "id": 1081,
+    "cluster": 0,
+    "normal": false,
+    "cleaned_text": "Indication: Smoking history | Findings: The lungs are hyperexpanded. Heart size normal. No mass or focal opacities seen. Stable degenerative changes of the thoracic spine. | Impression: No acute cardiopulmonary process. . Emphysematous changes in the lungs. | Conditions: Lung hyperdistention, Thoracic Vertebrae degenerative, Pulmonary Emphysema",
+    "image": "1081_IM-0057-2002.dcm.png"
+  },
+  {
+    "id": 785,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Indication: Chest pain. | Findings: The cardiomediastinal silhouette and pulmonary vasculature are within normal limits in size. The lungs are clear of focal airspace disease, pneumothorax, or pleural effusion. There are no acute bony findings. | Impression: No acute cardiopulmonary findings.",
+    "image": "785_IM-2325-1001.dcm.png"
+  },
+  {
+    "id": 671,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Indication: Dyspnea | Findings: and lateral chest examination was obtained. The heart silhouette is normal in size and contour. There are calcified mediastinal perihilar pulmonary nodules consistent with sequela of old granulomatous infection. No acute lung infiltrates. Aortic appear unremarkable. There is no effusion or pneumothorax. | Impression: No acute pulmonary disease. | Conditions: Calcinosis lung hilum, Nodule lung hilum, Granulomatous Disease",
+    "image": "671_IM-2245-1001.dcm.png"
+  },
+  {
+    "id": 3296,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Findings: The lungs are clear. Heart size is normal. No pneumothorax. Calcified left hilar node. | Impression: Clear lungs. No acute cardiopulmonary abnormality. | Conditions: Calcinosis lung hilum lymph nodes left",
+    "image": "3296_IM-1575-1001-0001.dcm.png"
+  },
+  {
+    "id": 333,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Indication: Productive | Findings: The lungs and pleural spaces show no acute abnormality. Lungs are mildly hyperexpanded. Heart size and pulmonary vascularity within normal limits. | Impression: No acute pulmonary abnormality. | Conditions: Lung hyperdistention mild",
+    "image": "333_IM-1594-1001.dcm.png"
+  },
+  {
+    "id": 325,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Indication: chest pain | Findings: Lungs are clear. No pleural effusions or pneumothoraces. Heart and mediastinum of normal size and contour. | Impression: Clear lungs.",
+    "image": "325_IM-1539-1001.dcm.png"
+  },
+  {
+    "id": 698,
+    "cluster": 0,
+    "normal": false,
+    "cleaned_text": "Indication: year-old female. Syncope. | Findings: The cardiomediastinal silhouette is normal in size and contour. No focal consolidation, pneumothorax or large pleural effusion. T-spine osteophytes. | Impression: Negative for acute abnormality. | Conditions: Osteophyte thoracic vertebrae multiple",
+    "image": "698_IM-2263-1001.dcm.png"
+  },
+  {
+    "id": 1720,
+    "cluster": 0,
+    "normal": false,
+    "cleaned_text": "Indication: year-old male with pain. | Findings: There are very low lung volumes with associated central bronchovascular crowding. There is elevation of the left hemidiaphragm. There are -filled loops of mildly dilated colon in the left upper quadrant. The bowel pattern is not well evaluated secondary to incomplete imaging of the abdomen. There is no pneumothorax or definite pleural effusion. The streaky opacities in the lung bases may represent atelectasis. No definite infectious infiltrate is seen. There is scoliosis and exaggeration of the thoracic kyphosis. | Impression: Very low lung volumes without definite acute cardiopulmonary finding. | Conditions: Lung hypoinflation severe, Markings bronchovascular, Diaphragm left elevated, Opacity lung base bilateral streaky, Scoliosis thoracic vertebrae, Kyphosis thoracic vertebrae",
+    "image": "1720_IM-0475-4004.dcm.png"
+  },
+  {
+    "id": 1854,
+    "cluster": 0,
+    "normal": false,
+    "cleaned_text": "Indication: year-old male. Chest pain. HIV. | Findings: The cardiomediastinal silhouette is normal in size and contour. No focal consolidation, pneumothorax or large pleural effusion. Negative for acute displaced rib fracture. | Impression: Negative for acute abnormality.",
+    "image": "1854_IM-0555-1001.dcm.png"
+  },
+  {
+    "id": 3933,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Indication: year-old female with and syncope | Findings: The heart size is normal. No pneumothorax. No large pleural effusions. No focal airspace opacities. | Impression: No acute cardiopulmonary abnormalities. | Conditions: No Indexing",
+    "image": "3933_IM-2004-1001.dcm.png"
+  },
+  {
+    "id": 310,
+    "cluster": 0,
+    "normal": false,
+    "cleaned_text": "Indication: pain. | Findings: Chest. The examination consists of frontal and lateral radiographs of the chest. The cardiomediastinal contours are within normal limits. No focal consolidation, pleural effusion, or pneumothorax identified. The visualized osseous structures and upper abdomen are unremarkable. Thoracic spine. The examination consists of frontal, lateral and swimmers lateral radiographs of the thoracic spine. There is no evidence of fracture or malalignment. The vertebral body and disc spaces are maintained. Sternum. The examination consists of ;oblique and one lateral radiograph of the sternum. No displaced fracture demonstrated. | Impression: No radiographic evidence of acute thoracic",
+    "image": "310_IM-1451-0001-0001.dcm.png"
+  },
+  {
+    "id": 1585,
+    "cluster": 0,
+    "normal": false,
+    "cleaned_text": "Findings: Sternotomy and mediastinal clips are unchanged. Cardiomediastinal silhouette is unchanged. Pulmonary vasculature and are unchanged. No consolidation, pneumothorax or large pleural effusion. Osseous structures and soft tissues are unchanged. | Impression: No interval change. | Conditions: Surgical Instruments mediastinum",
+    "image": "1585_IM-0380-1001.dcm.png"
+  },
+  {
+    "id": 3275,
+    "cluster": 0,
+    "normal": false,
+    "cleaned_text": "Indication: Left-sided chest pain for ;-;/;weeks for | Findings: The cardiomediastinal silhouette and vasculature are within normal limits for size and contour. The lungs are normally inflated and clear. Mild degenerative changes of the spine. | Impression: No acute radiographic cardiopulmonary process. | Conditions: Spine degenerative mild",
+    "image": "3275_IM-1556-1002001.dcm.png"
+  },
+  {
+    "id": 1731,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Indication: year-old female with and weakness. | Findings: Low lung volumes bilaterally. The lungs are clear bilaterally. Specifically, no evidence of focal consolidation, pneumothorax, or pleural effusion. Cardio mediastinal silhouette is unremarkable. Visualized osseous structures of the thorax are without acute abnormality. | Impression: No acute cardiopulmonary abnormality. | Conditions: Lung bilateral hypoinflation",
+    "image": "1731_IM-0481-2001.dcm.png"
+  },
+  {
+    "id": 3465,
+    "cluster": 0,
+    "normal": true,
+    "cleaned_text": "Indication: cp | Findings: Lungs are clear. No pleural effusions or pneumothoraces. Heart and mediastinum of normal size and contour. | Impression: Clear lungs.",
+    "image": "3465_IM-1683-1001.dcm.png"
+  },
+  {
+    "id": 2449,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: Dyspnea | Findings: The lungs are clear. The cardiomediastinal silhouette is within normal limits. No pneumothorax or pleural effusion. Again seen is paraspinal foreign body which may represent a bullet fragment. | Impression: Negative chest | Conditions: Foreign Bodies spine",
+    "image": "2449_IM-0984-1001.dcm.png"
+  },
+  {
+    "id": 110,
+    "cluster": 1,
+    "normal": false,
+    "cleaned_text": "Indication: Preoperative bariatric surgery. | Findings: Cardiac and mediastinal contours are within normal limits. The lungs are clear. Bony structures are intact. | Impression: Negative preoperative chest",
+    "image": "110_IM-0067-1001.dcm.png"
+  },
+  {
+    "id": 1588,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Findings: Heart size normal. Lungs are clear. are normal. No pneumonia, effusions, edema, pneumothorax, adenopathy, nodules or masses. | Impression: Normal chest",
+    "image": "1588_IM-0382-1001.dcm.png"
+  },
+  {
+    "id": 3422,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Findings: Heart size normal. Lungs are clear. are normal. No pneumonia, effusions, edema, pneumothorax, adenopathy, nodules or masses. | Impression: Normal chest",
+    "image": "3422_IM-1656-1001.dcm.png"
+  },
+  {
+    "id": 3031,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: chest pain | Findings: The lungs are clear. The cardiomediastinal silhouette is within normal limits. No pneumothorax or pleural effusion. | Impression: Negative chest.",
+    "image": "3031_IM-1406-1001.dcm.png"
+  },
+  {
+    "id": 1573,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: placement | Findings: Heart size normal. Lungs are clear. are normal. No pneumonia, effusions, edema, pneumothorax, adenopathy, nodules or masses. | Impression: Normal chest No evidence of tuberculosis",
+    "image": "1573_IM-0374-1001.dcm.png"
+  },
+  {
+    "id": 2068,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: Shortness of breath | Findings: The lungs are clear. The cardiomediastinal silhouette is within normal limits. No pneumothorax or pleural effusion. | Impression: Negative chest.",
+    "image": "2068_IM-0701-1001.dcm.png"
+  },
+  {
+    "id": 2956,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Findings: Heart size and mediastinal contour are normal. Pulmonary vascularity is normal. Lungs are clear. No pleural effusions or pneumothoraces. | Impression: Normal chest.",
+    "image": "2956_IM-1353-2001.dcm.png"
+  },
+  {
+    "id": 1151,
+    "cluster": 1,
+    "normal": false,
+    "cleaned_text": "Indication: wheezing. | Findings: Frontal and lateral views of the chest demonstrate the cardiomediastinal silhouette normal. There is normal distribution of the pulmonary vascularity. The lungs are clear. No effusion, consolidation, or pneumothorax. | Impression: Stable chest , without acute cardiopulmonary findings.",
+    "image": "1151_IM-0102-1001.dcm.png"
+  },
+  {
+    "id": 993,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: possible tuberculosis | Findings: Heart size normal. Lungs are clear. are normal. No pneumonia, effusions, edema, pneumothorax, adenopathy, nodules or masses. | Impression: Normal chest No evidence of tuberculosis",
+    "image": "993_IM-2478-1001.dcm.png"
+  },
+  {
+    "id": 3199,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: Shortness of breath. | Findings: The lungs are clear. The cardiomediastinal silhouette is within normal limits. No pneumothorax or pleural effusion. | Impression: Negative chest",
+    "image": "3199_IM-1510-1001.dcm.png"
+  },
+  {
+    "id": 1010,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Findings: Cardiac and mediastinal contours are within normal limits. The lungs are clear. Bony structures are intact. | Impression: Negative chest",
+    "image": "1010_IM-0012-1001.dcm.png"
+  },
+  {
+    "id": 3049,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: hemoptysis | Findings: Heart size normal. Lungs are clear. are normal. No pneumonia, effusions, edema, pneumothorax, adenopathy, nodules or masses. | Impression: Normal chest.",
+    "image": "3049_IM-1420-1001.dcm.png"
+  },
+  {
+    "id": 3037,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: chest pain. | Findings: Heart size normal. Lungs are clear. are normal. No pneumonia, effusions, edema, pneumothorax, adenopathy, nodules or masses. | Impression: Normal chest",
+    "image": "3037_IM-1410-1001.dcm.png"
+  },
+  {
+    "id": 2349,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: Positive TB test | Findings: Heart size and vascularity normal. These contour normal. Lungs clear. No pleural effusions or pneumothoraces. | Impression: Normal chest.",
+    "image": "2349_IM-0914-1001.dcm.png"
+  },
+  {
+    "id": 497,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: chest pain history of Hodgkin's disease | Findings: Heart size normal. Lungs are clear. are normal. No pneumonia, effusions, edema, pneumothorax, adenopathy, nodules or masses. | Impression: Normal chest.",
+    "image": "497_IM-2114-1001.dcm.png"
+  },
+  {
+    "id": 3633,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: x2 weeks. Chest pain. | Findings: Degenerative changes of the thoracic spine. Heart size normal. Lungs are clear. No pneumothorax or pleural effusion. Low lung volumes. | Impression: Unremarkable examination of the chest. | Conditions: Thoracic Vertebrae degenerative, Lung hypoinflation",
+    "image": "3633_IM-1800-1001.dcm.png"
+  },
+  {
+    "id": 1315,
+    "cluster": 1,
+    "normal": false,
+    "cleaned_text": "Indication: Chest pain. | Findings: Normal heart size. Normal mediastinal silhouette. No pneumothorax, pleural effusion or suspicious focal air space opacity. | Impression: Normal exam.",
+    "image": "1315_IM-0204-1001.dcm.png"
+  },
+  {
+    "id": 3157,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Findings: Heart size normal. Lungs are clear. are normal. No pneumonia, effusions, edema, pneumothorax, adenopathy, nodules or masses. | Impression: Normal chest",
+    "image": "3157_IM-1487-1001.dcm.png"
+  },
+  {
+    "id": 839,
+    "cluster": 1,
+    "normal": true,
+    "cleaned_text": "Indication: Dyspnea | Findings: Heart size normal. No pleural effusions or pneumothorax. Lungs are clear. Soft tissues and are unremarkable. | Impression: Normal chest.",
+    "image": "839_IM-2363-1001.dcm.png"
+  },
+  {
+    "id": 3797,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: Left rib fractures | Findings: and lateral chest examination was obtained. The heart silhouette and mediastinal contours are not enlarged. Lungs demonstrate left lower lobe air space opacity with atelectasis without significant change. There is no effusion or pneumothorax. | Impression: Left lower lobe air space opacities without significant change. | Conditions: Opacity lung lower lobe left, Pulmonary Atelectasis lower lobe left",
+    "image": "3797_IM-1910-0001-0002.dcm.png"
+  },
+  {
+    "id": 2082,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: Dyspnea, generalized weakness. | Findings: The heart is enlarged. There is pulmonary vascular congestion with diffusely increased interstitial and mild patchy airspace opacities. The distribution pulmonary edema. There is no pneumothorax or large pleural effusion. There are no acute bony findings. | Impression: Cardiomegaly with vascular congestion and suspected pulmonary edema. | Conditions: Cardiomegaly, Pulmonary Congestion, Opacity lung interstitial diffuse patchy mild, Pulmonary Edema",
+    "image": "2082_IM-0714-4004.dcm.png"
+  },
+  {
+    "id": 2474,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: Shortness of breath. | Findings: Patchy interstitial infiltrates have developed in both lower lobes. Both costophrenic are blunted. Aorta is somewhat tortuous, with the heart size is normal. Pulmonary are normal. | Impression: Bibasilar patchy airspace disease with bilateral small pleural fluid collections. | Conditions: Infiltrate lung lower lobe bilateral interstitial patchy, Costophrenic Angle bilateral blunted, Aorta tortuous mild, Airspace Disease lung base bilateral patchy, Pleural Effusion bilateral small",
+    "image": "2474_IM-1003-1001.dcm.png"
+  },
+  {
+    "id": 3961,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: year-old male | Findings: The heart size is normal. The mediastinal contour is within normal limits. There is a streaky opacity within the right upper lobe. There are no nodules or masses. No visible pneumothorax. No visible pleural fluid. The are grossly normal. There is no visible free intraperitoneal air under the diaphragm. | Impression: Right upper lobe infiltrate consistent with pneumonia. | Conditions: Opacity lung upper lobe right streaky, Infiltrate lung upper lobe right, Pneumonia upper lobe right",
+    "image": "3961_IM-2026-1001.dcm.png"
+  },
+  {
+    "id": 1342,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: year-old female, distress | Findings: Mildly hyperinflated lungs with flattened posterior diaphragm. No alveolar consolidation, no findings of pleural effusion or pulmonary edema. Heart size within normal limits. No pneumothorax. | Impression: Mildly hyperinflated lungs, air trapping versus inspiratory | Conditions: Lung hyperdistention mild, Diaphragm posterior flattened",
+    "image": "1342_IM-0221-1001.dcm.png"
+  },
+  {
+    "id": 521,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: year-old male. MVA | Findings: Low lung volumes with bronchovascular crowding. No focal alveolar consolidation, no definite pleural effusion seen. Heart size within normal limits for technique, no typical mediastinal widening of vascular injury. No pleural line of pneumothorax. | Impression: Limited quality exam shows no definite acute findings. | Conditions: Technical Quality of Image Unsatisfactory , Lung hypoinflation, Markings bronchovascular",
+    "image": "521_IM-2132-4004.dcm.png"
+  },
+  {
+    "id": 313,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: Slurred speech, confusion, weakness, shortness of breath. | Findings: The examination consists of frontal and lateral radiographs of the chest. The cardiac silhouette is moderately enlarged with a cardiothoracic ratio of ;/. Diffuse coarse interstitial opacity seen throughout the lungs with perihilar and lower lobe predominance. There is right greater than left bibasilar consolidation. There are small pleural effusions, right larger than left. No evidence of pneumothorax. Dense atherosclerotic calcification seen involving the thoracic and upper abdominal aorta. | Impression: Enlarged cardiac silhouette with coarse perihilar and lower lobe interstitial opacities may be due to diffuse infection or heart failure. Small pleural effusions. | Conditions: Cardiac Shadow enlarged moderate, Opacity lung lower lobe interstitial diffuse prominent, Opacity lung hilum interstitial diffuse prominent, Consolidation lung base bilateral, Pleural Effusion bilateral small, Atherosclerosis aorta",
+    "image": "313_IM-1472-1001.dcm.png"
+  },
+  {
+    "id": 1609,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: The patient is a -year-old male with history of cirrhosis, SBP, fevers. | Findings: Calcified lymph in both . amount of focal atelectasis posterior to the left heart. The trachea is midline. Negative for pneumothorax, pleural effusion or large focal airspace consolidation. The heart size is normal. | Impression: Focal atelectasis to the left lung, posterior to the heart. | Conditions: Calcinosis lymph nodes bilateral, Pulmonary Atelectasis left retrocardiac focal",
+    "image": "1609_IM-0394-1001.dcm.png"
+  },
+  {
+    "id": 2066,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: year old right-sided rib pain after a vehicle accident one ago. | Findings: There is mild cardiomegaly. The aorta is tortuous. There is opacities noted in the right lower lobe, subsegmental atelectasis. There is no pneumothorax or effusion. No displaced rib fractures. If there is high clinical concern, consider dedicated rib views for further evaluation. | Impression: Mild cardiomegaly, with subsegmental atelectasis in the right lower lobe. | Conditions: Cardiomegaly mild, Aorta tortuous, Opacity lung lower lobe right, Pulmonary Atelectasis lower lobe right",
+    "image": "2066_IM-0701-1001.dcm.png"
+  },
+  {
+    "id": 611,
+    "cluster": 2,
+    "normal": true,
+    "cleaned_text": "Indication: year-old female with headache. | Findings: The cardiomediastinal silhouette is within normal limits for appearance. Pulmonary hypoinflation with bronchovascular crowding. No focal areas of pulmonary consolidation. No pneumothorax. No pleural effusion. The thoracic spine appears intact. No acute, displaced rib fractures. | Impression: Pulmonary hypoinflation. Otherwise, no acute intrathoracic abnormality. | Conditions: Lung hypoinflation, Markings bronchovascular",
+    "image": "611_IM-2198-1001.dcm.png"
+  },
+  {
+    "id": 1640,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: Testicular cancer, Shielded. | Findings: The heart is normal in size. The mediastinum is unremarkable. Small nodule in the right upper lung is stable. The lungs are otherwise clear. | Impression: Small right upper lobe nodule, stable. Otherwise, no acute disease. | Conditions: Nodule lung upper lobe right small",
+    "image": "1640_IM-0420-1001.dcm.png"
+  },
+  {
+    "id": 761,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: XXXXyo with hepatic encephalopathy with persistent altered mental status despite t | Findings: Lung volumes are low. No focal infiltrates. Heart size normal. | Impression: change. Hypoinflation with no visible active cardiopulmonary disease. | Conditions: Lung hypoinflation",
+    "image": "761_IM-2310-1001.dcm.png"
+  },
+  {
+    "id": 2593,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: Back pain | Findings: Mild cardiomegaly is unchanged. Stable superior mediastinal contour which is within normal limits. Bilateral interstitial prominence. No focal airspace consolidation, pleural effusion, or pneumothorax. No acute osseous abnormalities. | Impression: Mild cardiomegaly with interstitial prominence, could represent mild interstitial edema, atypical infection, or chronic interstitial changes. | Conditions: Cardiomegaly mild, Lung bilateral interstitial prominent",
+    "image": "2593_IM-1084-1001.dcm.png"
+  },
+  {
+    "id": 1965,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: year-old female with chest pain | Findings: There is moderate cardiomegaly. There are bilateral interstitial opacities, increased since the previous exam. No focal airspace consolidation, pleural effusions or pneumothorax. No acute bony abnormalities. | Impression: Moderate cardiomegaly with pulmonary vascular congestion early interstitial edema. | Conditions: Cardiomegaly moderate, Opacity lung bilateral interstitial, Pulmonary Congestion, Pulmonary Edema interstitial",
+    "image": "1965_IM-0629-1001.dcm.png"
+  },
+  {
+    "id": 3177,
+    "cluster": 2,
+    "normal": true,
+    "cleaned_text": "Indication: Chest pain with shortness of breath | Findings: The lungs are clear. There is hyperinflation of the lungs. There is no pleural effusion or pneumothorax. The heart and mediastinum are normal. mild arthritic changes of the spine are present. | Impression: Hyperinflation consistent with COPD. No acute pulmonary disease identified. | Conditions: Lung hyperdistention, Arthritis spine mild, Pulmonary Disease, Chronic Obstructive",
+    "image": "3177_IM-1497-1001.dcm.png"
+  },
+  {
+    "id": 2483,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: COPD and shortness of breath. | Findings: There has been previous aortic valve replacement. Heart is towards upper limits normal for size and may be mild pulmonary vascular congestion. The skeletal structures are normal. The soft tissues are normal. | Impression: Question mild pulmonary vascular congestion in a patient with prosthetic aortic valve. | Conditions: Implanted Medical Device aortic valve",
+    "image": "2483_IM-1012-1001.dcm.png"
+  },
+  {
+    "id": 1160,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: immigrant. tb overseas is asymptomatic | Findings: The left hilum is retracted superiorly. In the collapsed left upper lobe are stranding and pneumatoceles. Additionally, pleural thickening is present in the left apex. No infiltrates are present in the left lower lobe or in the right lung. Heart size is normal. These findings are similar to the previous outside examination. | Impression: Stable left upper lobe collapse associated with parenchymal scarring and pleural thickening. Findings consistent with previous active pulmonary tuberculosis pneumonia. | Conditions: Pulmonary Atelectasis upper lobe left, Cysts lung upper lobe left, Thickening pleura apex left, Cicatrix lung upper lobe left, Tuberculosis lung healed",
+    "image": "1160_IM-0107-1001.dcm.png"
+  },
+  {
+    "id": 2509,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: year-old with chest pain. | Findings: The lungs are hyperexpanded, with increased AP diameter of the chest. The cardiomediastinal silhouette is stable and normal. There is no pneumothorax or large pleural effusion. | Impression: No acute cardiopulmonary abnormality. Chronic changes consistent with emphysema. | Conditions: Lung hyperdistention, Emphysema",
+    "image": "2509_IM-1031-1001.dcm.png"
+  },
+  {
+    "id": 2422,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: CP | Findings: Consolidation is developing in the left lower lobe. A patchy infiltrate is also present in the right lower lobe. Heart size is normal. | Impression: Bibasilar pneumonia. | Conditions: Consolidation lung lower lobe left, Infiltrate lung lower lobe right patchy, Pneumonia base bilateral",
+    "image": "2422_IM-0965-1001.dcm.png"
+  },
+  {
+    "id": 1439,
+    "cluster": 2,
+    "normal": false,
+    "cleaned_text": "Indication: lb loss in ; , term | Findings: Lungs are . opacities are present in the left lung base. Heart size normal. Mediastinum normal. | Impression: Findings of COPD and left base focal atelectasis. | Conditions: Opacity lung base left, Pulmonary Disease, Chronic Obstructive, Pulmonary Atelectasis base left focal",
+    "image": "1439_IM-0282-1001.dcm.png"
+  },
+  {
+    "id": 2047,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: year-old male, rule out tuberculosis | Findings: Large calcified granuloma in the right lower lobe is unchanged. No pneumothorax. Heart size is normal. No large pleural effusions. No focal airspace opacification. | Impression: No acute cardiopulmonary abnormalities. | Conditions: Calcified Granuloma lung lower lobe right large",
+    "image": "2047_IM-0688-1001.dcm.png"
+  },
+  {
+    "id": 516,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: Rule out pneumonia/. | Findings: Normal heart. Calcified right hilar granulomas. No focal infiltrate. Midline trachea. | Impression: No acute cardiopulmonary abnormality. | Conditions: Calcified Granuloma lung hilum right",
+    "image": "516_IM-2130-1001.dcm.png"
+  },
+  {
+    "id": 1330,
+    "cluster": 3,
+    "normal": false,
+    "cleaned_text": "Indication: year-old male with shortness of breath. | Findings: Heart size and cardiomediastinal silhouette are normal. Lungs are clear without focal airspace opacity, pleural effusion, or pneumothorax. Osseous structures are grossly intact. | Impression: Negative for acute cardiopulmonary findings.",
+    "image": "1330_IM-0213-1001.dcm.png"
+  },
+  {
+    "id": 1871,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Findings: The cardiomediastinal contours are within normal limits. Pulmonary vasculature is unremarkable. There is no focal airspace opacity. No pleural effusion or pneumothorax is seen. No acute bony abnormality is identified. | Impression: No acute cardiopulmonary abnormality.",
+    "image": "1871_IM-0564-1001.dcm.png"
+  },
+  {
+    "id": 1267,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: year-old female, dyspnea. | Findings: No focal areas of consolidation. No suspicious pulmonary opacities. Heart size within normal limits. No pleural effusions. No evidence of pneumothorax. | Impression: No acute cardiopulmonary abnormality.",
+    "image": "1267_IM-0179-1001.dcm.png"
+  },
+  {
+    "id": 3656,
+    "cluster": 3,
+    "normal": false,
+    "cleaned_text": "Indication: year-old female with hyperviscosity syndrome, rule out infiltrate | Findings: Heart size borderline enlarged. Stable cardiomediastinal silhouette. No pneumothorax or large pleural effusion. No focal airspace disease. Low lung volumes. Nodular densities consistent with chronic granulomatous disease. Bony structures appear intact. Mild degenerative disease of the thoracic spine. | Impression: Negative for acute cardiopulmonary disease. | Conditions: Cardiomegaly borderline, Lung hypoinflation, Density thorax round, Granulomatous Disease chronic, Thoracic Vertebrae degenerative mild",
+    "image": "3656_IM-1817-1001.dcm.png"
+  },
+  {
+    "id": 3034,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Findings: Cardiac and mediastinal contours are within normal limits. The lungs are clear. Multilevel cervical arthritis. | Impression: No acute findings. | Conditions: Arthritis cervical vertebrae multiple",
+    "image": "3034_IM-1408-1001.dcm.png"
+  },
+  {
+    "id": 2077,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: history of breast cancer | Findings: Right jugular catheter present with tip overlying the lower SVC. Curvilinear density projecting over the upper chest appears external on the lateral projection. Correlate clinically. Normal heart size and mediastinal contour appear normal pulmonary vascularity. scar/subsegmental atelectasis in the lingula. No focal airspace consolidation, pleural effusion, or pneumothorax. No acute osseous findings. Mild degenerative changes of the spine. | Impression: No acute cardiopulmonary findings. | Conditions: Catheters, Indwelling right, Density thorax, Cicatrix lung lingula, Pulmonary Atelectasis lingula, Spine degenerative mild",
+    "image": "2077_IM-0710-1001.dcm.png"
+  },
+  {
+    "id": 1688,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: chest pain | Findings: Heart size is normal and cardiomediastinal contours are normal. Lungs are otherwise clear bilaterally without effusion or pneumothorax. Bony structures and soft tissues are unremarkable. | Impression: No acute cardiopulmonary abnormality.",
+    "image": "1688_IM-0450-1001.dcm.png"
+  },
+  {
+    "id": 2580,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: Chest pain | Findings: Heart size and mediastinal contours are unchanged. Stable right upper lobe scarring with pleural thickening. No consolidation. No visible pleural effusion or pneumothorax. | Impression: Stable chest. No acute cardiopulmonary abnormality. | Conditions: Cicatrix lung upper lobe right, Thickening pleura",
+    "image": "2580_IM-1078-1001.dcm.png"
+  },
+  {
+    "id": 421,
+    "cluster": 3,
+    "normal": false,
+    "cleaned_text": "Indication: year-old female with chest pain | Findings: Lungs are clear without focal consolidation, effusion, or pneumothorax. Normal heart size. Bony thorax and soft tissues grossly unremarkable. Negative for pneumoperitoneum. | Impression: Negative for acute cardiopulmonary abnormality.",
+    "image": "421_IM-2064-1001.dcm.png"
+  },
+  {
+    "id": 1766,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: Dizziness and shortness of breath. Lightheadedness. | Findings: images. Heart size and pulmonary vascular engorgement appear within limits of normal. Mediastinal contour is unremarkable. No focal consolidation, pleural effusion, or pneumothorax identified. No convincing acute bony findings. | Impression: No acute cardiopulmonary abnormality identified.",
+    "image": "1766_IM-0500-1001.dcm.png"
+  },
+  {
+    "id": 237,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: year-old female with | Findings: The heart size and cardiomediastinal silhouette are normal. The lungs are clear without focal airspace opacity, pleural effusion, or pneumothorax. There are numerous calcified granuloma in the right perihilar region. There are multilevel degenerative changes in the thoracic spine. | Impression: No acute cardiopulmonary finding. | Conditions: Calcified Granuloma lung hilum right multiple, Thoracic Vertebrae degenerative multiple",
+    "image": "237_IM-0930-2001.dcm.png"
+  },
+  {
+    "id": 2517,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: Chest pain. | Findings: Lungs are clear. No pneumothorax or pleural effusion. Normal heart and mediastinal contours. Normal pulmonary vasculature. Bony thorax intact. | Impression: No acute cardiopulmonary abnormality.",
+    "image": "2517_IM-1036-1001.dcm.png"
+  },
+  {
+    "id": 3180,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: year old midchest pain for ;days. | Findings: The heart is normal in size and contour. The lungs are clear, without evidence of infiltrate. There is no pneumothorax or effusion. | Impression: No acute cardiopulmonary disease.",
+    "image": "3180_IM-1500-3001.dcm.png"
+  },
+  {
+    "id": 2053,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: year old and migraine. | Findings: The heart is normal in size and contour. The lungs are clear, without evidence of infiltrate. There is no pneumothorax or effusion. | Impression: No acute cardiopulmonary disease.",
+    "image": "2053_IM-0691-1001.dcm.png"
+  },
+  {
+    "id": 487,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: year-old female with wheezing. | Findings: Cardiomediastinal silhouettes are within normal limits. Lungs are clear without focal consolidation, pneumothorax, or pleural effusion. Bony thorax is unremarkable. | Impression: No acute cardiopulmonary abnormalities.",
+    "image": "487_IM-2110-1001.dcm.png"
+  },
+  {
+    "id": 1592,
+    "cluster": 3,
+    "normal": false,
+    "cleaned_text": "Indication: year-old female with chest pain and | Findings: Stable cardiomediastinal silhouette with borderline cardiomegaly. No pneumothorax or large pleural effusion. No focal airspace disease. Diffuse interstitial opacities. Bony structures appear intact. Nodular densities consistent with chronic granulomatous disease. | Impression: Negative for acute cardiopulmonary disease. | Conditions: Cardiomegaly borderline, Opacity lung interstitial diffuse, Granulomatous Disease chronic, Density round",
+    "image": "1592_IM-0385-1001.dcm.png"
+  },
+  {
+    "id": 2511,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: year-old , chest pain. | Findings: Sternotomy noted. Suture material overlies the left upper lobe. Heart size within normal limits. Negative for focal pulmonary consolidation, pleural effusion or pneumothorax. Scarring left costophrenic , unchanged. Calcified granulomas noted. | Impression: No acute abnormality. | Conditions: Sutures lung upper lobe left, Cicatrix costophrenic angle left, Calcified Granuloma multiple",
+    "image": "2511_IM-1034-1001.dcm.png"
+  },
+  {
+    "id": 1612,
+    "cluster": 3,
+    "normal": true,
+    "cleaned_text": "Indication: Seizure | Findings: Mild cardiomegaly. Tortuous thoracic aorta with atherosclerosis. No pneumothorax or pleural effusion. Degenerative changes in the thoracic spine without evidence of deformity. The visualized osseous structures are intact. No displaced rib fractures. No edema or airspace consolidation | Impression: No evidence of acute cardiopulmonary process. | Conditions: Cardiomegaly mild, Aorta, Thoracic tortuous, Atherosclerosis aorta, thoracic, Thoracic Vertebrae degenerative",
+    "image": "1612_IM-0397-1001.dcm.png"
+  },
+  {
+    "id": 2888,
+    "cluster": 4,
+    "normal": false,
+    "cleaned_text": "Indication: Melanoma | Findings: Heart size and pulmonary vascularity appear within normal limits. Descending thoracic aorta is tortuous. Lungs are free of focal airspace disease. No pleural effusion or pneumothorax is seen. Degenerative changes are present in the spine. | Impression: No evidence of active disease. | Conditions: Aorta, Thoracic tortuous, Spine degenerative",
+    "image": "2888_IM-1290-0001-0001.dcm.png"
+  },
+  {
+    "id": 2209,
+    "cluster": 4,
+    "normal": false,
+    "cleaned_text": "Indication: Shortness of breath | Findings: The heart is normal in size. The mediastinum is unremarkable. Emphysematous changes are identified. The lungs are otherwise grossly clear. | Impression: Emphysema without acute disease. | Conditions: Emphysema",
+    "image": "2209_IM-0816-1001.dcm.png"
+  },
+  {
+    "id": 1599,
+    "cluster": 4,
+    "normal": false,
+    "cleaned_text": "Indication: syncope | Findings: Normal heart size, mediastinal and aortic contours. Normal pulmonary vascularity. Atherosclerotic calcifications identified within the aortic. The lungs are clear. No focal consolidation, visible pneumothorax or large pleural effusion. Flowing thoracic spine osteophytes noted. | Impression: No evidence of active cardiopulmonary disease. | Conditions: Atherosclerosis aorta, Osteophyte thoracic vertebrae multiple",
+    "image": "1599_IM-0389-1001.dcm.png"
+  },
+  {
+    "id": 3969,
+    "cluster": 4,
+    "normal": false,
+    "cleaned_text": "Indication: Pain | Findings: The lungs hyperexpanded suggesting emphysema. The heart size and pulmonary vascularity appear within normal limits. Lungs are free of focal airspace disease. No pleural effusion or pneumothorax is seen. Osteopenia and degenerative changes are present in the spine. | Impression: No evidence of active disease. | Conditions: Lung hyperdistention, Spine degenerative, Bone Diseases, Metabolic spine",
+    "image": "3969_IM-2030-1001.dcm.png"
+  },
+  {
+    "id": 2820,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Indication: dyspnea | Findings: PA and lateral views of the chest were obtained. The heart is normal in size. Mediastinal contours are within normal limits. The lungs are clear. There is no pleural effusion or pneumothorax. | Impression: No acute disease.",
+    "image": "2820_IM-1244-1001.dcm.png"
+  },
+  {
+    "id": 1931,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Indication: Chest pain | Findings: The heart is normal in size. The mediastinum is unremarkable. The lungs are clear. | Impression: No acute disease.",
+    "image": "1931_IM-0602-1001.dcm.png"
+  },
+  {
+    "id": 613,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Indication: Chest pain. | Findings: The heart and lungs have in the interval. Both lungs are clear and expanded. Heart and mediastinum normal. | Impression: No active disease. | Conditions: No Indexing",
+    "image": "613_IM-2200-2001.dcm.png"
+  },
+  {
+    "id": 1093,
+    "cluster": 4,
+    "normal": false,
+    "cleaned_text": "Findings: The heart size and pulmonary vascularity appear within normal limits. The lungs are free of focal airspace disease. No pleural effusion or pneumothorax is seen. | Impression: No evidence of active disease.",
+    "image": "1093_IM-0064-1001.dcm.png"
+  },
+  {
+    "id": 596,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Indication: MULTIPLE MYELOMA BMT W/U LAB | Findings: The heart is normal in size. The mediastinum is unremarkable. The right chest tip is visualized in the mid SVC. There is no pneumothorax. The lungs are clear. | Impression: No acute disease. | Conditions: Catheters, Indwelling right",
+    "image": "596_IM-2188-26001.dcm.png"
+  },
+  {
+    "id": 1022,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Indication: please evaluate for evidence of active TB (for supportive housing placement | Findings: The heart and lungs have in the interval. Both lungs are clear and expanded. No change in the small calcified right upper lobe nodule. Heart and mediastinum normal. | Impression: No active disease. | Conditions: Nodule lung upper lobe right small, Calcinosis lung upper lobe right small",
+    "image": "1022_IM-0017-2001.dcm.png"
+  },
+  {
+    "id": 3311,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Findings: The lungs are clear. There is no pleural effusion. The heart and mediastinum are normal as are the skeletal structures and soft tissues. | Impression: No active disease.",
+    "image": "3311_IM-1586-1001.dcm.png"
+  },
+  {
+    "id": 2520,
+    "cluster": 4,
+    "normal": false,
+    "cleaned_text": "Indication: Bone marrow transplant evaluation | Findings: The heart size and pulmonary vascularity appear within normal limits. The lungs are free of focal airspace disease. No pleural effusion or pneumothorax is seen. A few bandlike opacities are present which are to represent small areas of scarring or atelectasis. There is eventration of the right hemidiaphragm. Calcified granuloma is present in the left lung. | Impression: No evidence of active disease. | Conditions: Opacity thorax multiple small, Cicatrix mild, Pulmonary Atelectasis, Diaphragmatic Eventration right, Calcified Granuloma lung left",
+    "image": "2520_IM-1039-27001.dcm.png"
+  },
+  {
+    "id": 2434,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Indication: Bilateral rhonchi | Findings: The heart is normal in size. The mediastinum is unremarkable. There is biapical scarring. The lungs are otherwise clear. | Impression: No acute disease. | Conditions: Cicatrix lung apex bilateral",
+    "image": "2434_IM-0976-1001.dcm.png"
+  },
+  {
+    "id": 1091,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Findings: The heart and lungs have in the interval. Both lungs are clear and expanded. Heart and mediastinum normal. | Impression: No active disease.",
+    "image": "1091_IM-0062-1001.dcm.png"
+  },
+  {
+    "id": 3322,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Indication: PRE-OP VENTRAL HERNIA REPAIR,COPD,EMPHYSEMA,DYSPNEA | Findings: The heart and lungs have in the interval. Both lungs are clear and expanded. No change in a small calcified right apical granuloma. Heart and mediastinum normal. | Impression: No active disease. | Conditions: Calcified Granuloma lung apex right small",
+    "image": "3322_IM-1588-1001.dcm.png"
+  },
+  {
+    "id": 2621,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Indication: DYSPNEA | Findings: Both lungs are clear and expanded. Heart and mediastinum normal. | Impression: No active disease.",
+    "image": "2621_IM-1109-1001.dcm.png"
+  },
+  {
+    "id": 1787,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Indication: Preop for cholecystectomy, history of apnea | Findings: The heart is normal in size. The mediastinum is unremarkable. Mild granulomatous sequela are noted. The lungs are grossly clear. | Impression: No acute disease. | Conditions: Granulomatous Disease mild",
+    "image": "1787_IM-0513-1001.dcm.png"
+  },
+  {
+    "id": 2609,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Indication: pain | Impression: No active disease.",
+    "image": "2609_IM-1099-3001.dcm.png"
+  },
+  {
+    "id": 1617,
+    "cluster": 4,
+    "normal": false,
+    "cleaned_text": "Findings: The cardiac contours are normal. Calcified tortuous thoracic aorta. Emphysema. Mild apical scarring. The lungs are otherwise clear. Thoracic spondylosis. | Impression: No acute process. | Conditions: Calcinosis aorta, thoracic, Aorta, Thoracic tortuous, Emphysema, Cicatrix lung apex mild, Spondylosis thoracic vertebrae",
+    "image": "1617_IM-0399-1001.dcm.png"
+  },
+  {
+    "id": 1487,
+    "cluster": 4,
+    "normal": true,
+    "cleaned_text": "Indication: Prior renal cell carcinoma. | Findings: The heart and lungs have in the interval. Both lungs are clear and expanded. Heart and mediastinum normal. | Impression: No active disease. | Conditions: No Indexing",
+    "image": "1487_IM-0314-1001.dcm.png"
+  },
+  {
+    "id": 916,
+    "cluster": 5,
+    "normal": true,
+    "cleaned_text": "Indication: cp htn | Findings: Lungs are clear without focal airspace disease. Numerous calcifications are again noted. No pleural effusions or pneumothoraces. heart size is upper limits of normal. | Impression: Clear lungs with heart size upper limits of normal. | Conditions: Calcinosis",
+    "image": "916_IM-2419-1001.dcm.png"
+  },
+  {
+    "id": 591,
+    "cluster": 5,
+    "normal": true,
+    "cleaned_text": "Indication: year-old woman with | Findings: The cardiomediastinal silhouette is within normal limits. The lungs are clear without areas of focal consolidation. There is a calcified granuloma within the left lung base. There is suggestion of a deep sulcus sign on the right. No definite pleural line of pneumothorax visualized. There is age-indeterminate wedging of several midthoracic vertebral bodies. | Impression: No acute cardiopulmonary process. . Age-indeterminate wedging of several midthoracic vertebral bodies. | Conditions: Calcified Granuloma lung base left, Deformity thoracic vertebrae",
+    "image": "591_IM-2186-1001.dcm.png"
+  },
+  {
+    "id": 2205,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: DYSPNEA; and chest pressure x ;days, Hx of lung in and | Findings: Heart size is normal. Tortuous aorta. Irregular ; opacity in the left upper lung is identified both on PA and lateral views and represents chronic scarring. She has a partial resection of the posterior fourth rib. No pneumothorax. No pleural effusion. No focal infiltrate. Anterior wedging of multiple vertebral bodies including T6, T8, T11 and T12. | Impression: scarring or pleural plaque in the left upper lobe with partial resection of the posterior fourth rib. No acute findings. | Conditions: Aorta tortuous, Opacity lung upper lobe left irregular, Cicatrix lung upper lobe left chronic, Deformity ribs posterior, Deformity thoracic vertebrae anterior multiple, Thickening pleura upper lobe left",
+    "image": "2205_IM-0814-1001.dcm.png"
+  },
+  {
+    "id": 2150,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: MVA | Findings: The heart is normal in size. The mediastinum is unremarkable. Small nodule seen in the left upper lung, possibly granuloma. The lungs are otherwise clear. | Impression: No acute disease. Left lung nodule. Correlate with prior films if available. If none are available, followup imaging in ;months is suggested. | Conditions: Nodule lung upper lobe left small",
+    "image": "2150_IM-0770-1001.dcm.png"
+  },
+  {
+    "id": 398,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: year-old female, alleged physical assault | Findings: No focal consolidation, pneumothorax or definite pleural effusion. Heart size and pulmonary vascularity within normal limits, no mediastinal widening characteristic in appearance of vascular injury. Right paratracheal calcifications suggest a previous granulomatous process. No acute osseous injury demonstrated. | Impression: No acute findings. Please note that fractures may not be demonstrated and consider additional imaging as clinically warranted. | Conditions: Calcinosis right paratracheal",
+    "image": "398_IM-2039-1001.dcm.png"
+  },
+  {
+    "id": 3381,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: Chest pain. | Impression: Normal heart size and normal mediastinal contours. Normal pulmonary vasculature. No of pleural effusions. No infiltrates. Normal of chest.",
+    "image": "3381_IM-1628-1001.dcm.png"
+  },
+  {
+    "id": 205,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Impression: Stable normal heart size. Elevated right diaphragm. Lungs are clear. | Conditions: Diaphragm right elevated",
+    "image": "205_IM-0689-2002.dcm.png"
+  },
+  {
+    "id": 3878,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: Esophageal carcinoma, shortness of breath in | Findings: Postop changes of CABG with mild cardiomegaly. There is an infiltrate in the right lower lobe. Thoracic spondylosis. | Impression: Right lower lobe infiltrate. In the appropriate clinical setting this appearance is compatible with pneumonia. Consider followup PA and lateral chest in ;-;weeks to ensure resolution and exclude an underlying mass. | Conditions: Cardiomegaly mild, Infiltrate lung lower lobe right, Spondylosis thoracic vertebrae",
+    "image": "3878_IM-1968-1001.dcm.png"
+  },
+  {
+    "id": 465,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: year-old status post thoracentesis | Findings: Normal cardiomediastinal contours. Right lower lung patchy opacities. Small right pneumothorax. Small right pleural effusion. | Impression: Small right apical pneumothorax. . Right middle and lower lobe patchy opacities, residual atelectasis. . Near-complete resolution of right-sided pleural effusion with residual. | Conditions: Opacity lung lower lobe right patchy, Opacity lung middle lobe right patchy, Pneumothorax apex right small, Pleural Effusion right small, Pulmonary Atelectasis lower lobe right, Pulmonary Atelectasis middle lobe right",
+    "image": "465_IM-2093-0001-0002.dcm.png"
+  },
+  {
+    "id": 638,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: sepsis. | Impression: Anterior segment right lower lobe pneumonia. No effusion. Heart size is normal. Lungs otherwise clear. | Conditions: Pneumonia lower lobe right anterior",
+    "image": "638_IM-2217-1001.dcm.png"
+  },
+  {
+    "id": 2759,
+    "cluster": 5,
+    "normal": true,
+    "cleaned_text": "Indication: year-old female presents for renal pretransplant evaluation. | Findings: The cardiomediastinal silhouette is within normal limits for appearance. No focal air is prominent consolidation. No pneumothorax. No large pleural effusion. Minimal degenerative changes of the thoracic spine with a mild wedge deformity of a midthoracic vertebral body. This is age-indeterminate. | Impression: No acute cardiopulmonary process. . Mild, age-indeterminate wedge deformity of a midthoracic vertebral body. | Conditions: Thoracic Vertebrae degenerative mild, Deformity thoracic vertebrae mild",
+    "image": "2759_IM-1207-1001.dcm.png"
+  },
+  {
+    "id": 669,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: Kidney transplant. | Findings: Cardiomegaly is present. The upper lobe pulmonary vascularity appears mildly prominent consistent with pulmonary venous hypertension. The lungs are free of focal airspace disease. No pleural effusion or pneumothorax is seen. There is eventration of the right hemidiaphragm. Bony changes of renal osteodystrophy are noted. | Impression: Cardiomegaly and mild vascular prominence. . No evidence of acute disease. | Conditions: Cardiomegaly, Pulmonary Congestion upper lobe mild, Hypertension, Pulmonary, Diaphragmatic Eventration right",
+    "image": "669_IM-2242-2001.dcm.png"
+  },
+  {
+    "id": 3600,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: EtOH, diabetes, altered mental status | Impression: Heart size is within normal limits. No edema. Bandlike scarring in the right base. No pleural effusion, lobar consolidation or pneumothorax. Multiple coarse calcifications in the epigastrium are seen on the lateral radiograph, not well localized on the frontal image. Could represent pancreatic parenchymal calcifications of chronic pancreatitis or old granulomatous sequela. | Conditions: Cicatrix lung base right, Calcinosis abdomen multiple",
+    "image": "3600_IM-1776-4004.dcm.png"
+  },
+  {
+    "id": 3001,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Findings: Frontal and lateral views of the chest show an unchanged cardiomediastinal silhouette. Normal mediastinal contour, pulmonary and vasculature, central airways and aeration of the lungs. The inferior posterior sulcus is excluded. | Impression: No acute or active cardiac or pulmonary disease process. Cannot exclude small pleural effusions. | Conditions: Sulcus posterior obscured",
+    "image": "3001_IM-1387-3001.dcm.png"
+  },
+  {
+    "id": 1859,
+    "cluster": 5,
+    "normal": true,
+    "cleaned_text": "Impression: Hiatal hernia as before. Scattered right upper lung scarring as before. Overall, Well-expanded and clear lungs. Mediastinal contour within normal limits. No acute cardiopulmonary abnormality identified. | Conditions: Hernia, Hiatal, Cicatrix lung upper lobe right scattered",
+    "image": "1859_IM-0557-12001.dcm.png"
+  },
+  {
+    "id": 2613,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: LOSS | Impression: Lungs appear slightly hyperinflated, suggestive of emphysema. No acute airspace abnormality seen. Mediastinal contour within normal limits. No acute cardiopulmonary abnormality identified. | Conditions: Lung hyperdistention mild",
+    "image": "2613_IM-1104-1001.dcm.png"
+  },
+  {
+    "id": 266,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: Hypertension, dizzy | Findings: The lungs and pleural spaces show no acute abnormality. Heart size is mildly enlarged, pulmonary vascularity within normal limits. Atherosclerotic calcifications are present in the aortic | Impression: No acute pulmonary abnormality. . Mild cardiomegaly, atherosclerotic disease. | Conditions: Cardiomegaly mild, Atherosclerosis aorta",
+    "image": "266_IM-1141-4004.dcm.png"
+  },
+  {
+    "id": 1727,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: year-old male, mediastinal germ cell tumor, surgery on mediastinum last | Findings: Right-sided internal jugular central venous catheter with tip approximating the right atrium. Postsurgical changes of the mediastinum including sternotomy. Left base opacities again noted, stable. There is a left lung opacity, not well appreciated on prior. There is no evidence of pneumothorax. Low lung volumes. Degenerative changes thoracic spine. | Impression: Left midlung opacity, not well seen on prior exam, may represent focus of airspace disease. . Stable left base opacities, scarring or atelectasis. . Postsurgical changes as above. | Conditions: Catheters, Indwelling right, Opacity lung base left, Opacity lung lingula, Lung hypoinflation, Thoracic Vertebrae degenerative, Pulmonary Atelectasis base left, Cicatrix lung base left",
+    "image": "1727_IM-0479-1001.dcm.png"
+  },
+  {
+    "id": 1700,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: preop lipoma. | Impression: Heart size is normal and lungs are clear. Soft tissue density overlying the left lateral upper chest may represent the patient's lipoma. | Conditions: Density thorax left",
+    "image": "1700_IM-0462-1001.dcm.png"
+  },
+  {
+    "id": 2055,
+    "cluster": 5,
+    "normal": false,
+    "cleaned_text": "Indication: CHF | Impression: Stable normal heart size. Calcified aorta. Right chest in the SVC. Small volume bilateral pleural effusions basilar atelectasis. Streaky perihilar opacification, a component of vascular congestion in central pulmonary edema persist. Nodular opacities scattered throughout the lungs compatible with known pulmonary parenchymal metastatic disease. Similar appearance to the prior study. | Conditions: Calcinosis aorta, Catheters, Indwelling right, Pleural Effusion bilateral small, Pulmonary Atelectasis base bilateral, Opacity lung hilum streaky, Pulmonary Congestion, Pulmonary Edema, Opacity lung bilateral scattered round multiple",
+    "image": "2055_IM-0693-1001.dcm.png"
+  }
+]
